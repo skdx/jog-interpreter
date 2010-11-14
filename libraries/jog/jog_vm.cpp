@@ -213,6 +213,12 @@ void JogCmdNewObject::execute( JogVM* vm )
     JogRef new_obj = of_type->create_instance(vm);
     vm->push( new_obj );  // final result
     vm->push( new_obj );  // consumed by constructor
+
+    if ( *(of_type->call_init_object) )
+    {
+      vm->push( new_obj );  // consumed by init_object()
+      vm->push( *(of_type->call_init_object) );  // call init_object()
+    }
     return;
   }
 
@@ -762,6 +768,32 @@ void JogCmdObjectRef::execute( JogVM* vm )
   vm->push(ref);
 }
 
+void JogCmdCallInitObject::on_push( JogVM* vm )
+{
+}
+
+void JogCmdCallInitObject::execute( JogVM* vm )
+{
+  int  statement_index = vm->execution_state();
+  if (statement_index == 0)
+  {
+    vm->push_frame( method_info );
+  }
+
+  RefList<JogCmd>* commands = &method_info->statements->commands;
+  int count = commands->count;
+
+  if (statement_index < count)
+  {
+    vm->run_this_again();
+    vm->push( *(*commands)[statement_index] );
+  }
+  else
+  {
+    vm->pop_frame();
+  }
+}
+
 void JogCmdStaticCall::on_push( JogVM* vm )
 {
   if (*args)
@@ -805,6 +837,7 @@ void JogCmdDynamicCall::execute( JogVM* vm )
   int  statement_index = vm->execution_state();
   if (statement_index == 0)
   {
+    JogRef obj = (vm->ref_stack_ptr + (method_info->param_ref_count))[-1];
     m = (vm->ref_stack_ptr + (method_info->param_ref_count))[-1]
         ->type->dispatch_table[method_info->dispatch_id];
     vm->push_frame( m );
@@ -838,6 +871,8 @@ void JogCmdClassCall::on_push( JogVM* vm )
 
     while (--count) vm->push( **(--cmd_ptr) );
   }
+
+  if (*context) vm->push( *context );
 }
 
 void JogCmdClassCall::execute( JogVM* vm )

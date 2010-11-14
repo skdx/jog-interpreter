@@ -42,6 +42,11 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
     type->base_class = parse_data_type();
   }
 
+  // make one empty static initializer for setting up initial class property values
+  type->static_initializers.add(
+    new JogMethodInfo( t, JOG_QUALIFIER_STATIC, type, NULL, new JogString("static") ) 
+    );
+
   scanner->must_consume(TOKEN_LCURLY,"Opening '{' expected.");
 
   while (parse_member(type))
@@ -168,7 +173,7 @@ bool JogParser::parse_member( JogTypeInfo* type )
   if (quals == JOG_QUALIFIER_STATIC && scanner->next_is(TOKEN_LCURLY))
   {
     // static initializer block
-    Ref<JogMethodInfo> m = new JogMethodInfo( t, quals, type, NULL, new JogString("<static>") );
+    Ref<JogMethodInfo> m = new JogMethodInfo( t, quals, type, NULL, new JogString("static") );
     this_method = *m;
     type->static_initializers.add(*m);
 

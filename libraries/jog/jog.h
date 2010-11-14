@@ -692,7 +692,7 @@ struct JogCmd : RefCounted
   }
 
   JogMethodInfo* resolve_call( Ref<JogToken> t, JogTypeInfo* context_type,
-      Ref<JogString> name, Ref<JogCmd> args );
+      Ref<JogString> name, Ref<JogCmd> args, bool allow_object_methods=true );
 };
 
 //=============================================================================
@@ -1374,6 +1374,8 @@ struct JogTypeInfo : RefCounted
   RefList<JogPropertyInfo>  properties;
   RefList<JogMethodInfo>    methods;
   RefList<JogMethodInfo>    static_initializers;
+  Ref<JogMethodInfo>        m_init_object;
+  Ref<JogCmd>               call_init_object;
   ArrayList<JogMethodInfo*> dispatch_table;
 
   JogTypeInfo*            base_class;  // set to NULL for Object, set to Object for aspects
@@ -2812,6 +2814,7 @@ struct JogCmdMethodCall : JogCmdIdentifier
 
   Ref<JogCmd> resolve();
   Ref<JogCmd> resolve( Ref<JogCmd> context );
+  Ref<JogCmd> resolve( JogTypeInfo* class_context, Ref<JogCmd> context );
 };
 
 struct JogCmdNewObject : JogCmd
@@ -4190,6 +4193,32 @@ struct JogCmdObjectRef : JogCmd
   void execute( JogVM* vm );
 };
 
+struct JogCmdCallInitObject : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  JogMethodInfo*  method_info;
+
+  JogCmdCallInitObject( Ref<JogToken> t, JogMethodInfo* method_info )
+    : JogCmd(t), method_info(method_info)
+  {
+  }
+
+  JogTypeInfo* type() { return NULL; }
+
+  void print()
+  {
+    method_info->name->print();
+    printf("()");
+  }
+
+  void on_push( JogVM* vm );
+
+  void execute( JogVM* vm );
+};
+
+
+
 struct JogCmdStaticCall : JogCmd
 {
   int node_type() { return __LINE__; }
@@ -4242,11 +4271,14 @@ struct JogCmdClassCall : JogCmd
   int node_type() { return __LINE__; }
 
   JogMethodInfo*  method_info;
+  Ref<JogCmd>     context;
   Ref<JogCmdList> args;
 
-  JogCmdClassCall( Ref<JogToken> t, JogMethodInfo* method_info, Ref<JogCmdList> args )
-    : JogCmd(t), method_info(method_info), args(args)
+  JogCmdClassCall( Ref<JogToken> t, JogMethodInfo* method_info, 
+      Ref<JogCmd> context, Ref<JogCmdList> args )
+    : JogCmd(t), method_info(method_info), context(context), args(args)
   {
+    if (*context) this->context = context->discarding_result();
   }
 
   JogTypeInfo* type() { return method_info->return_type; }

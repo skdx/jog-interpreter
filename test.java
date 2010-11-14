@@ -19,25 +19,36 @@
 
 class Test
 {
-  int n;
+  static int a = 4;
+  static int b = a + 1;
+  int n = 2;
 
   Test()
   {
-    Alpha a = new Beta(5);
-    System.out.println( a.nextValue() );
-    System.out.println( a.nextValue() );
-    System.out.println( a.number );
+    println( (new Alpha()).number );
+    println(n);
+    println(a);
+    println(b);
+  }
+
+  static public void test()
+  {
+    println(true);
   }
 }
 
 class Alpha
 {
-  int number;
+  int number = 3;
+
+  public Alpha() { Test.test(); }
 
   public Alpha( int number )
   {
     this.number = number;
   }
+
+  public int five() { return 5; }
 
   public int nextValue()
   {
@@ -64,6 +75,15 @@ class Beta extends Alpha
 class Object
 {
   public Object() { }
+
+  static public void print( double n ) { System.out.print(n); }
+  static public void print( int n ) { System.out.print(n); }
+  static public void print( boolean n ) { System.out.print(n); }
+  static public void print( char ch ) { System.out.print(ch); }
+  static public void println( double n ) { System.out.println(n); }
+  static public void println( int n ) { System.out.println(n); }
+  static public void println( boolean n ) { System.out.println(n); }
+  static public void println( char ch ) { System.out.println(ch); }
 }
 
 class String

@@ -92,23 +92,9 @@ void JogTypeInfo::resolve()
     static_initializers[i]->resolve();
   }
 
-  // Add a default constructor if necessary
-  if (is_reference())
+  if (*m_init_object) 
   {
-    Ref<JogString> ctor_name = new JogString("<init>");
-    if ( !methods_by_name.contains(ctor_name) )
-    {
-      methods_by_name[ctor_name] = new ArrayList<JogMethodInfo*>();
-
-      Ref<JogMethodInfo> m = new JogMethodInfo( t, 
-          JOG_QUALIFIER_PUBLIC|JOG_QUALIFIER_CLASS|JOG_QUALIFIER_CONSTRUCTOR, 
-          this, NULL, ctor_name );
-      methods.add(m);
-      m->resolve();
-
-      methods_by_signature[m->signature] = *m;
-      methods_by_name[m->name]->add(*m);
-    }
+    m_init_object->resolve();
   }
 }
 
@@ -243,7 +229,8 @@ static void print_candidates( Ref<JogToken> t,
 
 
 JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t, 
-    JogTypeInfo* context_type, Ref<JogString> name, Ref<JogCmd> _args )
+    JogTypeInfo* context_type, Ref<JogString> name, Ref<JogCmd> _args,
+    bool allow_object_methods )
 {
   Ref<JogCmdList> args = (JogCmdList*) *_args;
 
@@ -259,19 +246,38 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
   ArrayList<JogMethodInfo*> matches;
 
   // Add all methods with a matching name.
-  if (context_type->methods_by_name.contains(name))
+  bool have_class_methods = false;
+  if (context_type->class_methods_by_name.contains(name))
+  {
+    ArrayList<JogMethodInfo*>& class_methods = *(context_type->class_methods_by_name[name]);
+    for (int i=0; i<class_methods.count; ++i)
+    {
+      candidates.add(class_methods[i]);
+      have_class_methods = true;
+    }
+  }
+
+  bool have_object_methods = false;
+  if (allow_object_methods && context_type->methods_by_name.contains(name))
   {
     ArrayList<JogMethodInfo*>& methods = *(context_type->methods_by_name[name]);
     for (int i=0; i<methods.count; ++i)
     {
       candidates.add(methods[i]);
+      have_object_methods = true;
     }
   }
 
-  // Remove methods with insufficient number of parameters.
+  // Remove methods with insufficient number of parameters and
+  // class methods in favor of object methods.
+  bool remove_class_methods = (have_class_methods && have_object_methods);
   for (int i=0; i<candidates.count; ++i)
   {
-    if (candidates[i]->parameters.count == args_count) matches.add(candidates[i]);
+    JogMethodInfo* m = candidates[i];
+    if (m->parameters.count == args_count)
+    {
+      if ( !(remove_class_methods && m->is_static()) ) matches.add(candidates[i]);
+    }
   }
 
   if (matches.count == 0) 
@@ -298,10 +304,6 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
       if (type_a != type_b) 
       {
         perfect_match = false;
-        //type_a->print();
-        //printf(" <> ");
-        //type_b->print();
-        //printf(":%d\n",type_a->is_compatible_with(type_b));
         if ( !type_a->is_compatible_with(type_b) )
         {
           compatible_match = false;
@@ -2948,7 +2950,14 @@ Ref<JogCmd> JogCmdFor::resolve()
 
 Ref<JogCmd> JogCmdMethodCall::resolve()
 {
-  return resolve( new JogCmdThis(t,jog_context->this_type) );
+  if (jog_context->this_method->is_static())
+  {
+    return resolve( jog_context->this_type, NULL );
+  }
+  else
+  {
+    return resolve( new JogCmdThis(t,jog_context->this_type) );
+  }
 };
 
 Ref<JogCmd> JogCmdMethodCall::resolve( Ref<JogCmd> context )
@@ -2959,9 +2968,27 @@ Ref<JogCmd> JogCmdMethodCall::resolve( Ref<JogCmd> context )
   {
     return new JogCmdNativeCall( t, m, context, args );
   }
+  else if (m->is_static())
+  {
+    return new JogCmdClassCall( t, m, context, args );
+  }
   else
   {
     return new JogCmdDynamicCall( t, m, context, args );
+  }
+};
+
+Ref<JogCmd> JogCmdMethodCall::resolve( JogTypeInfo* class_context, Ref<JogCmd> context )
+{
+  JogMethodInfo* m = resolve_call( t, class_context, name, *args, false );
+
+  if (m->is_native())
+  {
+    throw error( "TODO: native static calls" );
+  }
+  else
+  {
+    return new JogCmdClassCall( t, m, context, args );
   }
 };
 
@@ -3177,7 +3204,7 @@ Ref<JogCmd> JogCmdCallSuperConstructor::resolve()
 JogCmdThis::JogCmdThis( Ref<JogToken> t, JogTypeInfo* this_type ) 
   : JogCmd(t), this_type(this_type)
 {
-  if (jog_context->this_method->is_static())
+  if (jog_context && jog_context->this_method->is_static())
   {
     throw error( "Invalid reference to 'this' object from a static method context." );
   }
