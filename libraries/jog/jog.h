@@ -460,15 +460,16 @@ struct JogReader : RefCounted
 #define TOKEN_RETURN        90
 #define TOKEN_STATIC        91
 #define TOKEN_STRICTFP      92
-#define TOKEN_SWITCH        93
-#define TOKEN_SYNCHRONIZED  94
-#define TOKEN_THROW         95
-#define TOKEN_THROWS        96
-#define TOKEN_TRANSIENT     97
-#define TOKEN_TRUE          98
-#define TOKEN_TRY           99
-#define TOKEN_VOLATILE      100
-#define TOKEN_WHILE         101
+#define TOKEN_SUPER         93
+#define TOKEN_SWITCH        94
+#define TOKEN_SYNCHRONIZED  95
+#define TOKEN_THROW         96
+#define TOKEN_THROWS        97
+#define TOKEN_TRANSIENT     98
+#define TOKEN_TRUE          99
+#define TOKEN_TRY           100
+#define TOKEN_VOLATILE      101
+#define TOKEN_WHILE         102
 
 #define JOG_SHR( type, value, bits ) \
   (bits) ? ((value >> bits) & ((((type)1) << ((sizeof(type)*8)-bits)) - 1)) : value
@@ -2780,6 +2781,8 @@ struct JogCmdLocalVarDeclaration : JogCmdIdentifier
   {
   }
 
+  JogTypeInfo* reinterpret_as_type() { return NULL; }
+
   void print()
   {
     of_type->print();
@@ -2806,8 +2809,31 @@ struct JogCmdMethodCall : JogCmdIdentifier
   {
   }
 
+  JogTypeInfo* reinterpret_as_type() { return NULL; }
+
   void print()
   {
+    JogCmdIdentifier::print();
+    args->print();
+  }
+
+  Ref<JogCmd> resolve();
+  Ref<JogCmd> resolve( Ref<JogCmd> context );
+  Ref<JogCmd> resolve( JogTypeInfo* class_context, Ref<JogCmd> context );
+};
+
+struct JogCmdSuperCall : JogCmdMethodCall
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdSuperCall( Ref<JogToken> t, Ref<JogString> name, Ref<JogCmdList> args ) 
+    : JogCmdMethodCall(t,name,args)
+  {
+  }
+
+  void print()
+  {
+    printf("super.");
     JogCmdIdentifier::print();
     args->print();
   }

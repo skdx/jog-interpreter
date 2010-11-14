@@ -1909,6 +1909,7 @@ Ref<JogCmd> JogCmdIdentifier::resolve()
 Ref<JogCmd> JogCmdIdentifier::resolve( Ref<JogCmd> context )
 {
   JogTypeInfo* context_type = context->type();
+  context_type->resolve();
 
   JogPropertyInfo* var_info = context_type->properties_by_name[name];
 
@@ -2950,6 +2951,23 @@ Ref<JogCmd> JogCmdFor::resolve()
 
 Ref<JogCmd> JogCmdMethodCall::resolve()
 {
+  if (name->equals("this"))
+  {
+    if ( !jog_context->this_method->is_constructor() )
+    {
+      throw error( "this() call is only valid in a constructor." );
+    }
+
+    if (jog_context->this_method->statements->commands[0] != this)
+    {
+      throw error( "this() call must be the first statement." );
+    }
+
+    JogMethodInfo* m = resolve_call( t, jog_context->this_type, new JogString("<init>"), *args );
+
+    return new JogCmdStaticCall( t, m, new JogCmdThis(t,jog_context->this_type), args );
+  }
+
   if (jog_context->this_method->is_static())
   {
     return resolve( jog_context->this_type, NULL );
@@ -2981,7 +2999,6 @@ Ref<JogCmd> JogCmdMethodCall::resolve( Ref<JogCmd> context )
 Ref<JogCmd> JogCmdMethodCall::resolve( JogTypeInfo* class_context, Ref<JogCmd> context )
 {
   JogMethodInfo* m = resolve_call( t, class_context, name, *args, false );
-
   if (m->is_native())
   {
     throw error( "TODO: native static calls" );
@@ -2990,6 +3007,43 @@ Ref<JogCmd> JogCmdMethodCall::resolve( JogTypeInfo* class_context, Ref<JogCmd> c
   {
     return new JogCmdClassCall( t, m, context, args );
   }
+};
+
+Ref<JogCmd> JogCmdSuperCall::resolve()
+{
+  if (jog_context->this_method->is_static())
+  {
+    throw error( "Illegal super() call in static method." );
+  }
+  else
+  {
+    JogTypeInfo* base_class = jog_context->this_type->base_class;
+    if ( !base_class )
+    {
+      throw error( "Current class does not have a superclass." );
+    }
+
+    JogMethodInfo* m = resolve_call( t, base_class, name, *args );
+
+    if (m->is_static())
+    {
+      throw error( "Illegal super() call to static method." );
+    }
+    else
+    {
+      return new JogCmdStaticCall( t, m, new JogCmdThis(t,base_class), args );
+    }
+  }
+};
+
+Ref<JogCmd> JogCmdSuperCall::resolve( Ref<JogCmd> context )
+{
+  throw error("[Internal] JogCmdSuperCall" );
+};
+
+Ref<JogCmd> JogCmdSuperCall::resolve( JogTypeInfo* class_context, Ref<JogCmd> context )
+{
+  throw error("[Internal] JogCmdSuperCall" );
 };
 
 Ref<JogCmd> JogCmdNewObject::resolve()

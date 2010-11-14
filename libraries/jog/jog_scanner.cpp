@@ -250,6 +250,7 @@ void JogScanner::set_up_keywords()
   keywords["return"]       = TOKEN_RETURN;
   keywords["static"]       = TOKEN_STATIC;
   keywords["strictfp"]     = TOKEN_STRICTFP;
+  keywords["super"]        = TOKEN_SUPER;
   keywords["switch"]       = TOKEN_SWITCH;
   keywords["synchronized"] = TOKEN_SYNCHRONIZED;
   keywords["throw"]        = TOKEN_THROW;

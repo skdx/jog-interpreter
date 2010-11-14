@@ -1,72 +1,42 @@
 // Project state:
 //   WORKING
-//     - Classes, extended classes, polymorphism, and super() constructor calls
+//     - Classes, extended classes, polymorphism
+//     - this() and super() constructor calls, super.method() calls
 //     - Class methods, object methods, overloads, overrides
-//     - Static initialization blocks
+//     - Class and object property initial value assignments, static initialization blocks
 //     - Primitive types and operations
 //     - Object types
 //     - System.out.print/println for primitive types
 //
 //   TODO
-//     - Initial property value assignments
-//     - this() constructor calls
-//     - super.method() calls
+//     - Issue overriding native calls
 //     - Arrays
 //     - Strings
 //     - Generics
 //     - Respect private/protected access qualifiers
-//     - Maybe inner classes
+//     - Maybe inner classes, maybe exceptions
 
 class Test
 {
-  static int a = 4;
-  static int b = a + 1;
-  int n = 2;
-
   Test()
   {
-    println( (new Alpha()).number );
-    println(n);
-    println(a);
-    println(b);
-  }
-
-  static public void test()
-  {
-    println(true);
+    println( (new Beta()).toInt() );
   }
 }
 
 class Alpha
 {
-  int number = 3;
+  int number;
 
-  public Alpha() { Test.test(); }
+  Alpha( int n ) { number = n; }
 
-  public Alpha( int number )
-  {
-    this.number = number;
-  }
-
-  public int five() { return 5; }
-
-  public int nextValue()
-  {
-    return 0;
-  }
+  public int toInt() { return number; }
 }
 
 class Beta extends Alpha
 {
-  public Beta( int n )
-  {
-    super(n*2);
-  }
-
-  public int nextValue()
-  {
-    return number++;
-  }
+  public Beta() { super(1); }
+  public int toInt() { return super.toInt() + 2; }
 }
 
 //==============================================================================

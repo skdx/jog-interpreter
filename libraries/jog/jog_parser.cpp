@@ -944,8 +944,8 @@ Ref<JogCmd> JogParser::parse_term()
         return expr;
       }
 
-    case TOKEN_ID:
-      if (scanner->peek()->content->equals("super") && scanner->peek(2)->type == TOKEN_LPAREN)
+    case TOKEN_SUPER:
+      if (scanner->peek(2)->type == TOKEN_LPAREN)
       {
         Ref<JogToken> t = scanner->read();
         if ( !this_method->is_constructor() )
@@ -960,6 +960,16 @@ Ref<JogCmd> JogParser::parse_term()
         this_method->calls_super_constructor = true;
         return new JogCmdCallSuperConstructor(t,args);
       }
+      else
+      {
+        Ref<JogToken>    t = scanner->read();
+        scanner->must_consume(TOKEN_PERIOD,"'.' expected.");
+        Ref<JogString>   name = scanner->must_read_id( "Method name expected." );
+        Ref<JogCmdList>  args = parse_args(true);
+        return new JogCmdSuperCall( t, name, args );
+      }
+
+    case TOKEN_ID:
       return parse_construct();
 
     case TOKEN_NULL:
