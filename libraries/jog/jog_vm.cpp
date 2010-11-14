@@ -815,6 +815,20 @@ void JogCmdStaticCall::execute( JogVM* vm )
   if (statement_index == 0)
   {
     vm->push_frame( method_info );
+    if (method_info->is_native())
+    {
+      vm->run_this_again();
+      vm->call_native( method_info );
+      return;
+    }
+  }
+  else
+  {
+    if (method_info->is_native())
+    {
+      vm->pop_frame();
+      return;
+    }
   }
 
   RefList<JogCmd>* commands = &method_info->statements->commands;
@@ -841,10 +855,22 @@ void JogCmdDynamicCall::execute( JogVM* vm )
     m = (vm->ref_stack_ptr + (method_info->param_ref_count))[-1]
         ->type->dispatch_table[method_info->dispatch_id];
     vm->push_frame( m );
+
+    if (m->is_native())
+    {
+      vm->run_this_again();
+      vm->call_native( m );
+      return;
+    }
   }
   else
   {
     m = vm->frame_ptr->called_method;
+    if (m->is_native())
+    {
+      vm->pop_frame();
+      return;
+    }
   }
 
   RefList<JogCmd>* commands = &m->statements->commands;
@@ -890,20 +916,6 @@ void JogCmdClassCall::execute( JogVM* vm )
   {
     vm->run_this_again();
     vm->push( *(*commands)[statement_index] );
-  }
-  else
-  {
-    vm->pop_frame();
-  }
-}
-
-void JogCmdNativeCall::execute( JogVM* vm )
-{
-  if (vm->execution_state() == 0)
-  {
-    vm->push_frame( method_info );
-    vm->run_this_again();
-    vm->call_native( method_info );
   }
   else
   {

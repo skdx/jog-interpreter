@@ -9,7 +9,6 @@
 //     - System.out.print/println for primitive types
 //
 //   TODO
-//     - Issue overriding native calls
 //     - Arrays
 //     - Strings
 //     - Generics

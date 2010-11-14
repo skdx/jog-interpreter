@@ -4321,20 +4321,6 @@ struct JogCmdClassCall : JogCmd
   void execute( JogVM* vm );
 };
 
-
-struct JogCmdNativeCall : JogCmdDynamicCall
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdNativeCall( Ref<JogToken> t, JogMethodInfo* method_info, 
-      Ref<JogCmd> context, Ref<JogCmdList> args )
-    : JogCmdDynamicCall( t, method_info, context, args )
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
 struct JogCmdReturnData : JogCmdUnary
 {
   int node_type() { return __LINE__; }

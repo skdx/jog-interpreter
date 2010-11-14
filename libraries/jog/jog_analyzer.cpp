@@ -2982,11 +2982,7 @@ Ref<JogCmd> JogCmdMethodCall::resolve( Ref<JogCmd> context )
 {
   JogMethodInfo* m = resolve_call( t, context->type(), name, *args );
 
-  if (m->is_native())
-  {
-    return new JogCmdNativeCall( t, m, context, args );
-  }
-  else if (m->is_static())
+  if (m->is_static())
   {
     return new JogCmdClassCall( t, m, context, args );
   }
