@@ -77,6 +77,8 @@ void JogTypeInfo::resolve()
 
   prep();
 
+  if (element_type) element_type->resolve();
+
   for (int i=0; i<class_methods.count; ++i)
   {
     class_methods[i]->resolve();

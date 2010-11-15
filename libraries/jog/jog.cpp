@@ -530,11 +530,20 @@ void JogTypeInfo::organize()
 
   if (qualifiers == 0)
   {
-    StringBuilder buffer;
-    buffer.print( "Reference to undefined type '" );
-    buffer.print( name->to_ascii()->data );
-    buffer.print( "'." );
-    throw t->error( buffer.to_string() );
+    if (name->get(-1) == '[')
+    {
+      element_type = JogTypeInfo::reference( t, name->substring(0,name->count-2) );
+      element_type->organize();
+      qualifiers = JOG_QUALIFIER_REFERENCE;
+    }
+    else
+    {
+      StringBuilder buffer;
+      buffer.print( "Reference to undefined type '" );
+      buffer.print( name->to_ascii()->data );
+      buffer.print( "'." );
+      throw t->error( buffer.to_string() );
+    }
   }
 
   // Inherit base class properties and methods.

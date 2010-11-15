@@ -17,6 +17,9 @@
 
 class Test
 {
+  //TODO
+  //int[] nums = new int[5];
+
   Test()
   {
     println( (new Beta()).toInt() );

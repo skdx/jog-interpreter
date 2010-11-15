@@ -113,6 +113,21 @@ struct JogString : RefCounted
     }
   }
 
+  JogString( Ref<JogString> other )
+  {
+    if (*other)
+    {
+      count = other->count;
+      data = new short int[count];
+      memcpy( data, other->data, count*2 );
+    }
+    else
+    {
+      count = 0;
+      data = NULL;
+    }
+  }
+
   ~JogString()
   {
     if (data) delete data;
@@ -124,6 +139,12 @@ struct JogString : RefCounted
     return data[index];
   }
   */
+
+  int get( int index )
+  {
+    if (index < 0) index += count;
+    return data[index];
+  }
 
   Ref<ASCIIString> to_ascii()
   {
@@ -287,6 +308,11 @@ struct JogString : RefCounted
   Ref<JogString> substring( int i1 )
   {
     return new JogString( data+i1, count-i1 );
+  }
+
+  Ref<JogString> substring( int i1, int i2 )
+  {
+    return new JogString( data+i1, (i2-i1)+1 );
   }
 };
 
@@ -1379,7 +1405,8 @@ struct JogTypeInfo : RefCounted
   Ref<JogCmd>               call_init_object;
   ArrayList<JogMethodInfo*> dispatch_table;
 
-  JogTypeInfo*            base_class;  // set to NULL for Object, set to Object for aspects
+  JogTypeInfo*            element_type; // Only non-NULL for arrays.
+  JogTypeInfo*            base_class;   // set to NULL for Object, set to Object for aspects
   ArrayList<JogTypeInfo*> interfaces;
 
   JogPropertyLookup class_properties_by_name;
@@ -1402,6 +1429,7 @@ struct JogTypeInfo : RefCounted
 
   JogTypeInfo() : 
     class_data(NULL),
+    element_type(NULL),
     base_class(NULL),
     organized(false), prepped(false), resolved(false)
   {
@@ -1429,6 +1457,7 @@ struct JogTypeInfo : RefCounted
   }
 
   bool is_type() { return (qualifiers != 0); }
+  bool is_array() { return element_type != NULL; }
 
   bool instance_of( JogTypeInfo* base_type );
 
@@ -7632,7 +7661,7 @@ struct JogParser : RefCounted
   int parse_member_qualifiers();
   bool parse_member( JogTypeInfo* type );
   void parse_params( Ref<JogMethodInfo> m );
-  JogTypeInfo* parse_data_type();
+  JogTypeInfo* parse_data_type( bool parse_brackets=true );
   Ref<JogCmd> parse_initial_value();
   Ref<JogCmd> parse_statement( bool require_semicolon=true );
   Ref<JogCmd> parse_expression();
@@ -7659,6 +7688,7 @@ struct JogParser : RefCounted
   Ref<JogCmd> parse_scale();
   Ref<JogCmd> parse_scale( Ref<JogCmd> lhs );
   Ref<JogCmd> parse_prefix_unary();
+  Ref<JogCmd> parse_array_decl( JogTypeInfo* array_type );
   Ref<JogCmd> parse_postfix_unary();
   Ref<JogCmd> parse_postfix_unary( Ref<JogCmd> operand );
   Ref<JogCmd> parse_term();

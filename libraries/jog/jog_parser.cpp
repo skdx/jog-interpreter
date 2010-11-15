@@ -338,7 +338,7 @@ void JogParser::parse_params( Ref<JogMethodInfo> m )
   }
 }
 
-JogTypeInfo* JogParser::parse_data_type()
+JogTypeInfo* JogParser::parse_data_type( bool parse_brackets )
 {
   Ref<JogToken> t = scanner->peek();
   Ref<JogString> name = scanner->must_read_id("Data type expected (void, int, String, ...).");
@@ -347,10 +347,14 @@ JogTypeInfo* JogParser::parse_data_type()
     name->add( "." );
     name->add( scanner->must_read_id("Sub-package or class name expected.") );
   }
-  while (scanner->consume(TOKEN_LBRACKET))
+
+  if (parse_brackets)
   {
-    name->add( "[" );
-    scanner->must_consume( TOKEN_RBRACKET, "Closing ']' expected." );
+    while (scanner->consume(TOKEN_LBRACKET))
+    {
+      name->add( "[" );
+      scanner->must_consume( TOKEN_RBRACKET, "Closing ']' expected." );
+    }
   }
   return JogTypeInfo::reference( t, name );
 }
@@ -815,9 +819,17 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
 
   if (scanner->consume(TOKEN_NEW))
   {
-    JogTypeInfo* of_type = parse_data_type();
-    Ref<JogCmdList>  args = parse_args(true);
-    return new JogCmdNewObject( t, of_type, args );
+    JogTypeInfo* of_type = parse_data_type(false);
+    if (scanner->next_is(TOKEN_LBRACKET))
+    {
+      // array declaration
+      return parse_array_decl( of_type );
+    }
+    else
+    {
+      Ref<JogCmdList>  args = parse_args(true);
+      return new JogCmdNewObject( t, of_type, args );
+    }
   }
   else if (scanner->consume(TOKEN_INCREMENT))
   {
@@ -848,6 +860,18 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
   {
     return parse_postfix_unary();
   }
+}
+
+Ref<JogCmd> JogParser::parse_array_decl( JogTypeInfo* array_type )
+{
+  // Requires: at least one specified dim ("[5]").
+  Ref<JogString> new_name = new JogString(array_type->name);
+  new_name->add( "[" );
+  array_type = JogTypeInfo::reference( array_type->t, new_name );
+  scanner->must_consume( TOKEN_LBRACKET, "'[' expected." );
+  Ref<JogCmd> expr = parse_expression();
+  scanner->must_consume( TOKEN_RBRACKET, "']' expected." );
+  throw expr->error( "TODO:parse_array_decl()" );
 }
 
 // ++, --, ., (), []
