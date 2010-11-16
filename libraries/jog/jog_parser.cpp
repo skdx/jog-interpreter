@@ -352,7 +352,7 @@ JogTypeInfo* JogParser::parse_data_type( bool parse_brackets )
   {
     while (scanner->consume(TOKEN_LBRACKET))
     {
-      name->add( "[" );
+      name->add( "[]" );
       scanner->must_consume( TOKEN_RBRACKET, "Closing ']' expected." );
     }
   }
@@ -872,7 +872,7 @@ Ref<JogCmd> JogParser::parse_array_decl( Ref<JogToken> t, JogTypeInfo* array_typ
 {
   // Requires: at least one specified dim ("[5]").
   Ref<JogString> new_name = new JogString(array_type->name);
-  new_name->add( "[" );
+  new_name->add( "[]" );
   array_type = JogTypeInfo::reference( array_type->t, new_name );
   scanner->must_consume( TOKEN_LBRACKET, "'[' expected." );
   Ref<JogCmd> expr = parse_expression();
@@ -914,11 +914,11 @@ Ref<JogCmd> JogParser::parse_postfix_unary( Ref<JogCmd> operand )
       }
       Ref<JogString> new_name = new JogString(op_type->name);
       scanner->must_consume(TOKEN_RBRACKET,"Closing ']' expected.");
-      new_name->add( "[" );
+      new_name->add( "[]" );
       while (scanner->next_is(TOKEN_LBRACKET))
       {
         scanner->must_consume(TOKEN_RBRACKET,"Closing ']' expected.");
-        new_name->add( "[" );
+        new_name->add( "[]" );
       }
       return parse_local_var_decl( t, JogTypeInfo::reference(t,new_name), false );
     }
