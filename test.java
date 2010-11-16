@@ -7,9 +7,10 @@
 //     - Primitive types and operations
 //     - Object types
 //     - System.out.print/println for primitive types
+//     - Arrays (length, get, set)
 //
 //   TODO
-//     - Arrays
+//     - Arrays (+=, etc.)
 //     - Strings
 //     - Generics
 //     - Respect private/protected access qualifiers
@@ -17,11 +18,28 @@
 
 class Test
 {
-  int[] nums = new int[5];
 
   Test()
   {
-    println(nums.length);
+
+    char[] chars = new char[12];
+
+    chars[0]  = 'H';
+    chars[1]  = 'e';
+    chars[2]  = 'l';
+    chars[3]  = 'l';
+    chars[4]  = 'o';
+    chars[5]  = ' ';
+    chars[6]  = 'W';
+    chars[7]  = 'o';
+    chars[8]  = 'r';
+    chars[9]  = 'l';
+    chars[10] = 'd';
+    chars[11] = '!';
+
+    println( chars.length );
+    for (int i=0; i<chars.length; ++i) { print( chars[i] ); }
+    print('\n');
   }
 }
 

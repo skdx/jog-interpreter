@@ -2431,10 +2431,7 @@ void JogCmdPreStepProperty::on_push( JogVM* vm )
 void JogCmdPreStepPropertyReal64::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   double& v = ((double*)context->data)[var_info->index];
   vm->push( v += modifier );
 }
@@ -2442,10 +2439,7 @@ void JogCmdPreStepPropertyReal64::execute( JogVM* vm )
 void JogCmdPreStepPropertyReal32::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   double& v = ((double*)context->data)[var_info->index];
   v = (float)(v += modifier);
   vm->push( v );
@@ -2454,10 +2448,7 @@ void JogCmdPreStepPropertyReal32::execute( JogVM* vm )
 void JogCmdPreStepPropertyInt64::execute( JogVM* vm )
 {;
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
 
   vm->push( v += modifier );
@@ -2466,10 +2457,7 @@ void JogCmdPreStepPropertyInt64::execute( JogVM* vm )
 void JogCmdPreStepPropertyInt32::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   v = (JogInt32)(v + modifier);
   vm->push( v );
@@ -2478,10 +2466,7 @@ void JogCmdPreStepPropertyInt32::execute( JogVM* vm )
 void JogCmdPreStepPropertyInt16::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   v = (JogInt16)(v + modifier);
   vm->push( v );
@@ -2490,10 +2475,7 @@ void JogCmdPreStepPropertyInt16::execute( JogVM* vm )
 void JogCmdPreStepPropertyInt8::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   v = (JogInt8)(v + modifier);
   vm->push( v );
@@ -2502,10 +2484,7 @@ void JogCmdPreStepPropertyInt8::execute( JogVM* vm )
 void JogCmdPreStepPropertyChar::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   v = (JogChar)(v + modifier);
   vm->push( v );
@@ -2520,10 +2499,7 @@ void JogCmdPostStepProperty::on_push( JogVM* vm )
 void JogCmdPostStepPropertyReal64::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   double& v = ((double*)context->data)[var_info->index];
   vm->push( v );
   v += modifier;
@@ -2532,10 +2508,7 @@ void JogCmdPostStepPropertyReal64::execute( JogVM* vm )
 void JogCmdPostStepPropertyReal32::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   double& v = ((double*)context->data)[var_info->index];
   vm->push( v );
   v = (float)(v += modifier);
@@ -2544,10 +2517,7 @@ void JogCmdPostStepPropertyReal32::execute( JogVM* vm )
 void JogCmdPostStepPropertyInt64::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   vm->push( v );
   v += modifier;
@@ -2556,10 +2526,7 @@ void JogCmdPostStepPropertyInt64::execute( JogVM* vm )
 void JogCmdPostStepPropertyInt32::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   vm->push( v );
   v = (JogInt32)(v + modifier);
@@ -2568,10 +2535,7 @@ void JogCmdPostStepPropertyInt32::execute( JogVM* vm )
 void JogCmdPostStepPropertyInt16::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   vm->push( v );
   v = (JogInt16)(v + modifier);
@@ -2580,10 +2544,7 @@ void JogCmdPostStepPropertyInt16::execute( JogVM* vm )
 void JogCmdPostStepPropertyInt8::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   vm->push( v );
   v = (JogInt8)(v + modifier);
@@ -2592,12 +2553,230 @@ void JogCmdPostStepPropertyInt8::execute( JogVM* vm )
 void JogCmdPostStepPropertyChar::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to modify a field of a null reference." );
-  }
+  context.null_check(t);
   JogInt64& v = context->data[var_info->index];
   vm->push( v );
   v = (JogChar)(v + modifier);
+}
+
+//-----------------------------------------------------------------------------
+
+void JogCmdArrayRead::on_push( JogVM* vm )
+{
+  vm->push( *index_expr );
+  vm->push( *context );
+}
+
+void JogCmdArrayReadRef::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((JogObject**)array->data)[index] );
+}
+
+void JogCmdArrayReadReal64::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((double*)array->data)[index] );
+}
+
+void JogCmdArrayReadReal32::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((float*)array->data)[index] );
+}
+
+void JogCmdArrayReadInt64::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((JogInt64*)array->data)[index] );
+}
+
+void JogCmdArrayReadInt32::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((JogInt32*)array->data)[index] );
+}
+
+void JogCmdArrayReadInt16::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((JogInt16*)array->data)[index] );
+}
+
+void JogCmdArrayReadInt8::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((JogInt8*)array->data)[index] );
+}
+
+void JogCmdArrayReadChar::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((JogChar*)array->data)[index] );
+}
+
+void JogCmdArrayReadBoolean::execute( JogVM* vm )
+{
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  vm->push( ((char*)array->data)[index] );
+}
+
+//-----------------------------------------------------------------------------
+
+void JogCmdArrayWrite::on_push( JogVM* vm )
+{
+  vm->push( *new_value );
+  vm->push( *index_expr );
+  vm->push( *context );
+}
+
+void JogCmdArrayWriteRef::execute( JogVM* vm )
+{
+  JogRef value = vm->pop_ref();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+
+  JogObject* &location = ((JogObject**)array->data)[index];
+  if (location) location->release();
+  location = *value;
+  if (location) location->retain();
+
+  vm->push( value );
+}
+
+void JogCmdArrayWriteReal64::execute( JogVM* vm )
+{
+  double value = vm->pop_double();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((double*)array->data)[index] = value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteReal32::execute( JogVM* vm )
+{
+  double value = vm->pop_double();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((float*)array->data)[index] = (float) value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteInt64::execute( JogVM* vm )
+{
+  JogInt64 value = vm->pop_data();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((JogInt64*)array->data)[index] = value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteInt32::execute( JogVM* vm )
+{
+  JogInt64 value = vm->pop_data();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((JogInt32*)array->data)[index] = (JogInt32) value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteInt16::execute( JogVM* vm )
+{
+  JogInt64 value = vm->pop_data();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((JogInt16*)array->data)[index] = (JogInt16) value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteInt8::execute( JogVM* vm )
+{
+  JogInt64 value = vm->pop_data();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((JogInt8*)array->data)[index] = (JogInt8) value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteChar::execute( JogVM* vm )
+{
+  JogInt64 value = vm->pop_data();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((JogChar*)array->data)[index] = (JogChar) value;
+  vm->push( value );
+}
+
+void JogCmdArrayWriteBoolean::execute( JogVM* vm )
+{
+  JogInt64 value = vm->pop_data();
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  obj.null_check(t);
+  JogArray* array = (JogArray*) *obj;
+  array->index_check(t,index);
+  ((char*)array->data)[index] = (char) value;
+  vm->push( value );
 }
 

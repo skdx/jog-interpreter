@@ -794,6 +794,14 @@ struct JogArray
 
   void release_refs();
   int  total_object_bytes();
+
+  void index_check( Ref<JogToken> t, int index )
+  {
+    if ( (unsigned int) index >= (unsigned int) size )
+    {
+      throw t->error( "Array index out of bounds." );
+    }
+  }
 };
 
 
@@ -1578,6 +1586,8 @@ struct JogTypeManager
 
   JogTypeInfo* must_find_type( const char* name );
   JogTypeInfo* find_common_type( JogToken* t, JogCmd* cmd1, JogCmd* cmd2, bool min32=false );
+  JogTypeInfo* find_common_type( JogToken* t, JogTypeInfo* type1, JogTypeInfo* type2, 
+      bool min32=false );
 };
 
 extern JogTypeManager jog_type_manager;
@@ -2330,13 +2340,6 @@ struct JogCmdConditional : JogCmd
       Ref<JogCmd> true_value, Ref<JogCmd> false_value ) 
     : JogCmd(t), condition(condition), true_value(true_value), false_value(false_value)
   { 
-    /*
-    condition->require_boolean();
-
-    JogTypeInfo* common_type = jog_type_manager.find_common_type( *t, *true_value, *false_value );
-    this->true_value = true_value->cast_to_type( common_type );
-    this->false_value = false_value->cast_to_type( common_type );
-    */
   }
 
   JogTypeInfo* type() { return true_value->type(); }
@@ -3130,10 +3133,10 @@ struct JogCmdArrayAccess : JogCmd
   int node_type() { return __LINE__; }
 
   Ref<JogCmd> context;
-  Ref<JogCmd> index;
+  Ref<JogCmd> index_expr;
 
-  JogCmdArrayAccess( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index )
-    : JogCmd(t), context(context), index(index)
+  JogCmdArrayAccess( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmd(t), context(context), index_expr(index_expr)
   {
   }
 
@@ -3141,13 +3144,14 @@ struct JogCmdArrayAccess : JogCmd
 
   void print()
   {
-    printf("(");
     context->print();
     printf("[");
-    index->print();
+    index_expr->print();
     printf("]");
-    printf(")");
   }
+
+  Ref<JogCmd> resolve();
+  Ref<JogCmd> resolve_assignment( Ref<JogCmd> context, Ref<JogCmd> new_value );
 };
 
 struct JogCmdReturnValue : JogCmdUnary
@@ -7698,7 +7702,7 @@ struct JogCmdPostStepPropertyChar : JogCmdPostStepProperty
 };
 
 //=============================================================================
-//  JogCmdArraySize
+//  JogCmdArray
 //=============================================================================
 struct JogCmdArraySize : JogCmd
 {
@@ -7725,6 +7729,302 @@ struct JogCmdArraySize : JogCmd
   void execute( JogVM* vm );
 };
 
+//-----------------------------------------------------------------------------
+
+struct JogCmdArrayRead : JogCmdArrayAccess
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayRead( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayAccess(t,context,index_expr)
+  {
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm );
+};
+
+struct JogCmdArrayReadRef : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadRef( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return context->type()->element_type; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadReal64 : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadReal64( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_real64; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadReal32 : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadReal32( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_real32; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadInt64 : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadInt64( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int64; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadInt32 : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadInt32( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int32; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadInt16 : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadInt16( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int16; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadInt8 : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadInt8( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int8; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadChar : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadChar( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_char; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayReadBoolean : JogCmdArrayRead
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayReadBoolean( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr )
+    : JogCmdArrayRead(t,context,index_expr)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_boolean; }
+
+  void execute( JogVM* vm );
+};
+
+//-----------------------------------------------------------------------------
+
+struct JogCmdArrayWrite : JogCmdArrayAccess
+{
+  int node_type() { return __LINE__; }
+
+  Ref<JogCmd> new_value;
+
+  JogCmdArrayWrite( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayAccess(t,context,index_expr), new_value(new_value)
+  {
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm );
+};
+
+struct JogCmdArrayWriteRef : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteRef( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return context->type()->element_type; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteReal64 : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteReal64( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_real64; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteReal32 : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteReal32( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_real32; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteInt64 : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteInt64( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int64; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteInt32 : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteInt32( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int32; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteInt16 : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteInt16( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int16; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteInt8 : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteInt8( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int8; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteChar : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteChar( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_char; }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdArrayWriteBoolean : JogCmdArrayWrite
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdArrayWriteBoolean( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      Ref<JogCmd> new_value )
+    : JogCmdArrayWrite(t,context,index_expr,new_value)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_boolean; }
+
+  void execute( JogVM* vm );
+};
+
 //=============================================================================
 //  JogParser
 //=============================================================================
@@ -7743,6 +8043,7 @@ struct JogParser : RefCounted
   JogTypeInfo* parse_data_type( bool parse_brackets=true );
   Ref<JogCmd> parse_initial_value();
   Ref<JogCmd> parse_statement( bool require_semicolon=true );
+  Ref<JogCmd> parse_local_var_decl( Ref<JogToken> t, JogTypeInfo* var_type, bool require_semicolon );
   Ref<JogCmd> parse_expression();
   Ref<JogCmd> parse_assignment();
   Ref<JogCmd> parse_conditional();

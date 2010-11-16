@@ -34,6 +34,12 @@ JogTypeInfo* JogTypeManager::find_common_type( JogToken* t, JogCmd* cmd1, JogCmd
     throw cmd2->error( "Expression does not result in value." );
   }
 
+  return find_common_type( t, type1, type2, min32 );
+}
+
+JogTypeInfo* JogTypeManager::find_common_type( JogToken* t, 
+    JogTypeInfo* type1, JogTypeInfo* type2, bool min32 )
+{
   if (type1 == type2 && !min32) return type1;
 
   if (type1->is_primitive())
@@ -2019,6 +2025,15 @@ Ref<JogCmd> JogCmdIdentifier::resolve_assignment( Ref<JogCmd> context, Ref<JogCm
     }
 
     JogTypeInfo* context_type = context->type();
+
+    if (context_type->is_array())
+    {
+      if (name->equals("length"))
+      {
+        throw error( "Array length property is read-only." );
+      }
+    }
+
     JogPropertyInfo* var_info = context_type->properties_by_name[name];
 
     if (var_info)
@@ -3237,6 +3252,134 @@ Ref<JogCmd> JogCmdMemberAccess::resolve_stepcount_access( int when, int modifier
     return member->resolve_stepcount_access( when, modifier, class_context, context );
   }
   return member->resolve_stepcount_access( when, modifier, context->resolve() );
+}
+
+Ref<JogCmd> JogCmdArrayAccess::resolve()
+{
+  context = context->resolve();
+  JogTypeInfo* context_type = context->require_reference();
+  if ( !context_type->is_array() )
+  {
+    throw context->error( "Array reference expected." );
+  }
+
+  index_expr = index_expr->resolve();
+  if (index_expr->require_integer() != jog_type_manager.type_int32)
+  {
+    throw error( "'int' value expected." );
+  }
+
+  JogTypeInfo* element_type = context_type->element_type;
+  if (element_type->is_reference())
+  {
+    return new JogCmdArrayReadRef( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_real64)
+  {
+    return new JogCmdArrayReadReal64( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_real32)
+  {
+    return new JogCmdArrayReadReal32( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_int64)
+  {
+    return new JogCmdArrayReadInt64( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_int32)
+  {
+    return new JogCmdArrayReadInt32( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_int16)
+  {
+    return new JogCmdArrayReadInt16( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_int8)
+  {
+    return new JogCmdArrayReadInt8( t, context, index_expr );
+  }
+  else if (element_type == jog_type_manager.type_char)
+  {
+    return new JogCmdArrayReadChar( t, context, index_expr );
+  }
+  else
+  {
+    return new JogCmdArrayReadBoolean( t, context, index_expr );
+  }
+}
+
+Ref<JogCmd> JogCmdArrayAccess::resolve_assignment( Ref<JogCmd> assignment_context, 
+    Ref<JogCmd> new_value )
+{
+  if (*assignment_context != NULL)
+  {
+    throw error( "TODO: JogCmdArrayAccess::resolve_assignment( !NULL, ... )" );
+  }
+
+  context = context->resolve();
+  JogTypeInfo* context_type = context->require_value();
+  if ( !context_type->is_array() )
+  {
+    throw context->error( "Array reference expected." );
+  }
+
+  index_expr = index_expr->resolve();
+  if (index_expr->require_integer() != jog_type_manager.type_int32)
+  {
+    throw error( "'int' value expected." );
+  }
+
+  new_value = new_value->resolve();
+  JogTypeInfo* new_value_type = new_value->require_value();
+
+  JogTypeInfo* common_type = jog_type_manager.find_common_type( *t, 
+      context_type->element_type, new_value_type, false );
+  if (common_type != context_type->element_type)
+  {
+    throw new_value->error( "Mismatched type in assignment." );
+  }
+
+  if (common_type != new_value_type)
+  {
+    new_value = new_value->cast_to_type(common_type)->resolve();
+  }
+
+  if (common_type->is_reference())
+  {
+    return new JogCmdArrayWriteRef( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_real64)
+  {
+    return new JogCmdArrayWriteReal64( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_real32)
+  {
+    return new JogCmdArrayWriteReal32( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_int64)
+  {
+    return new JogCmdArrayWriteInt64( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_int32)
+  {
+    return new JogCmdArrayWriteInt32( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_int16)
+  {
+    return new JogCmdArrayWriteInt16( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_int8)
+  {
+    return new JogCmdArrayWriteInt8( t, context, index_expr, new_value );
+  }
+  else if (common_type == jog_type_manager.type_char)
+  {
+    return new JogCmdArrayWriteChar( t, context, index_expr, new_value );
+  }
+  else
+  {
+    return new JogCmdArrayWriteBoolean( t, context, index_expr, new_value );
+  }
 }
 
 Ref<JogCmd> JogCmdReturnValue::resolve()

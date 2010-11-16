@@ -448,32 +448,38 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
   {
     // local variable declaration
     JogTypeInfo* var_type = expr->reinterpret_as_type();
-    if ( !var_type )
-    {
-      throw expr->error( "Datatype expected." );
-    }
-
-    Ref<JogCmdLocalVarDeclarations> locals = new JogCmdLocalVarDeclarations(expr->t);
-    do
-    {
-      Ref<JogToken>    t2 = scanner->peek();
-      Ref<JogString>   name = scanner->must_read_id( "Identifier expected." );
-      Ref<JogCmdLocalVarDeclaration> decl = new JogCmdLocalVarDeclaration(t2,var_type,name);
-      if (scanner->consume(TOKEN_ASSIGN))
-      {
-        decl->initial_value = parse_expression();
-      }
-      locals->add(*decl);
-    }
-    while (scanner->consume(TOKEN_COMMA));
-
-    if (require_semicolon) scanner->must_consume_semicolon(t);
-    return *locals;
+    return parse_local_var_decl( expr->t, var_type, require_semicolon );
   }
 
   if (require_semicolon) scanner->must_consume_semicolon(t);
 
   return *(expr->discarding_result());
+}
+
+Ref<JogCmd> JogParser::parse_local_var_decl( Ref<JogToken> t, JogTypeInfo* var_type,
+    bool require_semicolon )
+{
+  if ( !var_type )
+  {
+    throw t->error( "Datatype expected." );
+  }
+
+  Ref<JogCmdLocalVarDeclarations> locals = new JogCmdLocalVarDeclarations(t);
+  do
+  {
+    Ref<JogToken>    t2 = scanner->peek();
+    Ref<JogString>   name = scanner->must_read_id( "Identifier expected." );
+    Ref<JogCmdLocalVarDeclaration> decl = new JogCmdLocalVarDeclaration(t2,var_type,name);
+    if (scanner->consume(TOKEN_ASSIGN))
+    {
+      decl->initial_value = parse_expression();
+    }
+    locals->add(*decl);
+  }
+  while (scanner->consume(TOKEN_COMMA));
+
+  if (require_semicolon) scanner->must_consume_semicolon(t);
+  return *locals;
 }
 
 Ref<JogCmd> JogParser::parse_expression()
@@ -898,9 +904,30 @@ Ref<JogCmd> JogParser::parse_postfix_unary( Ref<JogCmd> operand )
   }
   else if (scanner->consume(TOKEN_LBRACKET))
   {
-    Ref<JogCmd> index = parse_expression();
-    scanner->must_consume(TOKEN_RBRACKET,"Closing ']' expected.");
-    return parse_postfix_unary( new JogCmdArrayAccess(t,operand,index) );
+    if (scanner->next_is(TOKEN_RBRACKET))
+    {
+      // "int[] nums;"-style local variable.
+      JogTypeInfo* op_type = operand->reinterpret_as_type();
+      if (op_type == NULL)
+      {
+        throw operand->error( "Datatype expected." );
+      }
+      Ref<JogString> new_name = new JogString(op_type->name);
+      scanner->must_consume(TOKEN_RBRACKET,"Closing ']' expected.");
+      new_name->add( "[" );
+      while (scanner->next_is(TOKEN_LBRACKET))
+      {
+        scanner->must_consume(TOKEN_RBRACKET,"Closing ']' expected.");
+        new_name->add( "[" );
+      }
+      return parse_local_var_decl( t, JogTypeInfo::reference(t,new_name), false );
+    }
+    else
+    {
+      Ref<JogCmd> index = parse_expression();
+      scanner->must_consume(TOKEN_RBRACKET,"Closing ']' expected.");
+      return parse_postfix_unary( new JogCmdArrayAccess(t,operand,index) );
+    }
   }
   else
   {
