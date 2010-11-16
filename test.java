@@ -10,7 +10,7 @@
 //     - Arrays (length, get, set)
 //
 //   TODO
-//     - Arrays (+=, etc.)
+//     - Arrays (multidimensiona, +=, etc.)
 //     - Strings
 //     - Generics
 //     - Respect private/protected access qualifiers
@@ -40,6 +40,11 @@ class Test
     println( chars.length );
     for (int i=0; i<chars.length; ++i) { print( chars[i] ); }
     print('\n');
+
+    while (true)
+    {
+      int[] data = new int[10];
+    }
   }
 }
 

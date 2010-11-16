@@ -750,6 +750,7 @@ struct JogInstruction
 struct JogObject
 {
   int          reference_count;
+  int          count;     // number of elements for an array, unused for other objects
   JogObject*   next_object;
   JogTypeInfo* type;
   JogInt64     data[1];  // may actually be any size
@@ -770,34 +771,10 @@ struct JogObject
 
   void release_refs();
   int  total_object_bytes();
-};
-
-struct JogArray
-{
-  int          reference_count;
-  JogObject*   next_object;
-  JogTypeInfo* type;
-  JogInt32     size;
-  double       data[1];  // may actually be any size
-
-  // Note: all object data is externally memset to 0 when it is declared.
-
-  inline void retain() 
-  { 
-    ++reference_count;
-  }
-
-  inline void release()
-  {
-    if ( !--reference_count ) release_refs();
-  }
-
-  void release_refs();
-  int  total_object_bytes();
 
   void index_check( Ref<JogToken> t, int index )
   {
-    if ( (unsigned int) index >= (unsigned int) size )
+    if ( (unsigned int) index >= (unsigned int) count )
     {
       throw t->error( "Array index out of bounds." );
     }
@@ -1423,6 +1400,7 @@ struct JogTypeInfo : RefCounted
   int class_data_count;
   int data_count;
   int object_size;
+  int element_size;
 
   JogInt64* class_data;
 
@@ -1488,7 +1466,7 @@ struct JogTypeInfo : RefCounted
     return result;
   }
 
-  JogRef create_array( JogVM* vm, int size );
+  JogRef create_array( JogVM* vm, int count );
 
   bool is_type() { return (qualifiers != 0); }
   bool is_array() { return element_type != NULL; }
@@ -1582,6 +1560,15 @@ struct JogTypeManager
     type_int8->organized    = true;
     type_char->organized    = true;
     type_boolean->organized = true;
+
+    type_real64->element_size  = 8;
+    type_real32->element_size  = 4;
+    type_int64->element_size   = 8;
+    type_int32->element_size   = 4;
+    type_int16->element_size   = 2;
+    type_int8->element_size    = 1;
+    type_char->element_size    = 2;
+    type_boolean->element_size = 1;
   }
 
   JogTypeInfo* must_find_type( const char* name );

@@ -3436,6 +3436,6 @@ void JogCmdArraySize::execute( JogVM* vm )
 {
   JogRef obj = vm->pop_ref();
   if (*obj == NULL) throw error( "Null Pointer Exception." );
-  vm->push( ((JogArray*)*obj)->size );
+  vm->push( obj->count );
 }
 

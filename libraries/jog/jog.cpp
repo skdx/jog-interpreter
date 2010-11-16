@@ -5,28 +5,51 @@
 //=============================================================================
 JogObject::~JogObject()
 {
-  //printf("DELETE OBJECT\n");
+  if (type->is_array()) printf("DELETE ARRAY\n");
+  else printf("DELETE OBJECT\n");
 }
 
 void JogObject::release_refs()
 {
-  Ref<JogPropertyInfo>* cur = type->properties.data - 1;
-  int count = type->properties.count + 1;
-  while (--count)
+  if (type->is_array())
   {
-    JogPropertyInfo* p = **(++cur);
-    if (p->type->is_reference())
+    if (type->element_type->is_reference())
     {
-      JogObject* obj = (JogObject*)(int)data[p->index];
-      if (obj) obj->release();
+      JogObject** cur = ((JogObject**) data) - 1;
+      int c = count + 1;
+      while (--c)
+      {
+        JogObject* obj = *(++cur);
+        if (obj) obj->release();
+      }
+    }
+  }
+  else
+  {
+    Ref<JogPropertyInfo>* cur = type->properties.data - 1;
+    int count = type->properties.count + 1;
+    while (--count)
+    {
+      JogPropertyInfo* p = **(++cur);
+      if (p->type->is_reference())
+      {
+        JogObject* obj = (JogObject*)(int)data[p->index];
+        if (obj) obj->release();
+      }
     }
   }
 }
 
 int JogObject::total_object_bytes()
 {
-  // TODO: handle arrays
-  return type->object_size;
+  if (type->is_array())
+  {
+    return (sizeof(JogObject) - 8) + count * type->element_type->element_size;
+  }
+  else
+  {
+    return type->object_size;
+  }
 }
 
 
@@ -445,38 +468,17 @@ JogTypeInfo* JogTypeInfo::find( Ref<JogString> name )
   }
 }
 
-JogRef JogTypeInfo::create_array( JogVM* vm, int size )
+JogRef JogTypeInfo::create_array( JogVM* vm, int count )
 {
-  int obj_size = sizeof(JogArray) - 8;
+  int obj_size = (sizeof(JogObject) - 8) + count * element_type->element_size;
 
-  if (is_reference())
-  {
-    obj_size += size * sizeof(void*);
-  }
-  else if (this == jog_type_manager.type_real64 || this == jog_type_manager.type_int64)
-  {
-    obj_size += size * 8;
-  }
-  else if (this == jog_type_manager.type_real32 || this == jog_type_manager.type_int32)
-  {
-    obj_size += size * 4;
-  }
-  else if (this == jog_type_manager.type_int16 || this == jog_type_manager.type_char)
-  {
-    obj_size += size * 2;
-  }
-  else
-  {
-    obj_size += size;
-  }
-
-  JogArray* obj = (JogArray*) new char[obj_size];
+  JogObject* obj = (JogObject*) new char[obj_size];
   memset( obj, 0, obj_size );
   obj->type = this;
-  obj->size = size;
+  obj->count = count;
 
   JogRef result((JogObject*)obj);
-  vm->register_object((JogObject*)obj,obj_size);
+  vm->register_object(obj,obj_size);
 
   return result;
 }
@@ -563,6 +565,8 @@ void JogTypeInfo::organize()
 {
   if (organized) return;
   organized = true;
+
+  element_size = sizeof(void*);
 
   if (qualifiers == 0)
   {

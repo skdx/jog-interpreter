@@ -248,8 +248,8 @@ void JogCmdNewArray::on_push( JogVM* vm )
 
 void JogCmdNewArray::execute( JogVM* vm )
 {
-  int size = vm->pop_int();
-  vm->push( of_type->create_array(vm,size) );
+  int count = vm->pop_int();
+  vm->push( of_type->create_array(vm,count) );
 }
 
 
@@ -2571,8 +2571,7 @@ void JogCmdArrayReadRef::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((JogObject**)array->data)[index] );
 }
@@ -2581,8 +2580,7 @@ void JogCmdArrayReadReal64::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((double*)array->data)[index] );
 }
@@ -2591,8 +2589,7 @@ void JogCmdArrayReadReal32::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((float*)array->data)[index] );
 }
@@ -2601,8 +2598,7 @@ void JogCmdArrayReadInt64::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((JogInt64*)array->data)[index] );
 }
@@ -2611,8 +2607,7 @@ void JogCmdArrayReadInt32::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((JogInt32*)array->data)[index] );
 }
@@ -2621,8 +2616,7 @@ void JogCmdArrayReadInt16::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((JogInt16*)array->data)[index] );
 }
@@ -2631,8 +2625,7 @@ void JogCmdArrayReadInt8::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((JogInt8*)array->data)[index] );
 }
@@ -2641,8 +2634,7 @@ void JogCmdArrayReadChar::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((JogChar*)array->data)[index] );
 }
@@ -2651,8 +2643,7 @@ void JogCmdArrayReadBoolean::execute( JogVM* vm )
 {
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   vm->push( ((char*)array->data)[index] );
 }
@@ -2671,9 +2662,8 @@ void JogCmdArrayWriteRef::execute( JogVM* vm )
   JogRef value = vm->pop_ref();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
+  JogObject* array = obj.null_check(t);
 
-  JogArray* array = (JogArray*) *obj;
   array->index_check(t,index);
 
   JogObject* &location = ((JogObject**)array->data)[index];
@@ -2689,8 +2679,7 @@ void JogCmdArrayWriteReal64::execute( JogVM* vm )
   double value = vm->pop_double();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((double*)array->data)[index] = value;
   vm->push( value );
@@ -2701,8 +2690,7 @@ void JogCmdArrayWriteReal32::execute( JogVM* vm )
   double value = vm->pop_double();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((float*)array->data)[index] = (float) value;
   vm->push( value );
@@ -2713,8 +2701,7 @@ void JogCmdArrayWriteInt64::execute( JogVM* vm )
   JogInt64 value = vm->pop_data();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((JogInt64*)array->data)[index] = value;
   vm->push( value );
@@ -2725,8 +2712,7 @@ void JogCmdArrayWriteInt32::execute( JogVM* vm )
   JogInt64 value = vm->pop_data();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((JogInt32*)array->data)[index] = (JogInt32) value;
   vm->push( value );
@@ -2737,8 +2723,7 @@ void JogCmdArrayWriteInt16::execute( JogVM* vm )
   JogInt64 value = vm->pop_data();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((JogInt16*)array->data)[index] = (JogInt16) value;
   vm->push( value );
@@ -2749,8 +2734,7 @@ void JogCmdArrayWriteInt8::execute( JogVM* vm )
   JogInt64 value = vm->pop_data();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((JogInt8*)array->data)[index] = (JogInt8) value;
   vm->push( value );
@@ -2761,8 +2745,7 @@ void JogCmdArrayWriteChar::execute( JogVM* vm )
   JogInt64 value = vm->pop_data();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((JogChar*)array->data)[index] = (JogChar) value;
   vm->push( value );
@@ -2773,8 +2756,7 @@ void JogCmdArrayWriteBoolean::execute( JogVM* vm )
   JogInt64 value = vm->pop_data();
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
-  obj.null_check(t);
-  JogArray* array = (JogArray*) *obj;
+  JogObject* array = obj.null_check(t);
   array->index_check(t,index);
   ((char*)array->data)[index] = (char) value;
   vm->push( value );
