@@ -41,10 +41,6 @@ class Test
     for (int i=0; i<chars.length; ++i) { print( chars[i] ); }
     print('\n');
 
-    while (true)
-    {
-      int[] data = new int[10];
-    }
   }
 }
 

@@ -5,8 +5,8 @@
 //=============================================================================
 JogObject::~JogObject()
 {
-  if (type->is_array()) printf("DELETE ARRAY\n");
-  else printf("DELETE OBJECT\n");
+  //if (type->is_array()) printf("DELETE ARRAY\n");
+  //else printf("DELETE OBJECT\n");
 }
 
 void JogObject::release_refs()
