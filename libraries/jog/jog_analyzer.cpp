@@ -1913,6 +1913,14 @@ Ref<JogCmd> JogCmdIdentifier::resolve( Ref<JogCmd> context )
   JogTypeInfo* context_type = context->type();
   context_type->resolve();
 
+  if (context_type->is_array())
+  {
+    if (name->equals("length"))
+    {
+      return new JogCmdArraySize( t, context );
+    }
+  }
+
   JogPropertyInfo* var_info = context_type->properties_by_name[name];
 
   if (var_info)
@@ -3054,6 +3062,20 @@ Ref<JogCmd> JogCmdNewObject::resolve()
   return this;
 };
 
+Ref<JogCmd> JogCmdNewArray::resolve()
+{
+  resolved = true;
+  of_type->resolve();
+  size_expr = size_expr->resolve();
+
+  if (size_expr->require_integer() != jog_type_manager.type_int32)
+  {
+    throw error( "'int' value expected." );
+  }
+
+  return this;
+};
+
 Ref<JogCmd> JogCmdPreIncrement::resolve()
 {
   return operand->resolve_stepcount_access(0,1);
@@ -3261,3 +3283,16 @@ JogCmdThis::JogCmdThis( Ref<JogToken> t, JogTypeInfo* this_type )
     throw error( "Invalid reference to 'this' object from a static method context." );
   }
 }
+
+void JogCmdArraySize::on_push( JogVM* vm )
+{
+  vm->push( *context );
+}
+
+void JogCmdArraySize::execute( JogVM* vm )
+{
+  JogRef obj = vm->pop_ref();
+  if (*obj == NULL) throw error( "Null Pointer Exception." );
+  vm->push( ((JogArray*)*obj)->size );
+}
+

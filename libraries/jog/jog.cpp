@@ -445,6 +445,42 @@ JogTypeInfo* JogTypeInfo::find( Ref<JogString> name )
   }
 }
 
+JogRef JogTypeInfo::create_array( JogVM* vm, int size )
+{
+  int obj_size = sizeof(JogArray) - 8;
+
+  if (is_reference())
+  {
+    obj_size += size * sizeof(void*);
+  }
+  else if (this == jog_type_manager.type_real64 || this == jog_type_manager.type_int64)
+  {
+    obj_size += size * 8;
+  }
+  else if (this == jog_type_manager.type_real32 || this == jog_type_manager.type_int32)
+  {
+    obj_size += size * 4;
+  }
+  else if (this == jog_type_manager.type_int16 || this == jog_type_manager.type_char)
+  {
+    obj_size += size * 2;
+  }
+  else
+  {
+    obj_size += size;
+  }
+
+  JogArray* obj = (JogArray*) new char[obj_size];
+  memset( obj, 0, obj_size );
+  obj->type = this;
+  obj->size = size;
+
+  JogRef result((JogObject*)obj);
+  vm->register_object((JogObject*)obj,obj_size);
+
+  return result;
+}
+
 bool JogTypeInfo::instance_of( JogTypeInfo* base_type )
 {
   // Same type

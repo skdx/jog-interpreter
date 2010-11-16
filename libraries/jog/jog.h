@@ -772,6 +772,30 @@ struct JogObject
   int  total_object_bytes();
 };
 
+struct JogArray
+{
+  int          reference_count;
+  JogObject*   next_object;
+  JogTypeInfo* type;
+  JogInt32     size;
+  double       data[1];  // may actually be any size
+
+  // Note: all object data is externally memset to 0 when it is declared.
+
+  inline void retain() 
+  { 
+    ++reference_count;
+  }
+
+  inline void release()
+  {
+    if ( !--reference_count ) release_refs();
+  }
+
+  void release_refs();
+  int  total_object_bytes();
+};
+
 
 struct JogRef
 {
@@ -1455,6 +1479,8 @@ struct JogTypeInfo : RefCounted
 
     return result;
   }
+
+  JogRef create_array( JogVM* vm, int size );
 
   bool is_type() { return (qualifiers != 0); }
   bool is_array() { return element_type != NULL; }
@@ -2897,7 +2923,34 @@ struct JogCmdNewObject : JogCmd
   Ref<JogCmd> resolve();
 
   void on_push( JogVM* vm );
+  void execute( JogVM* vm );
+};
 
+struct JogCmdNewArray : JogCmd
+{
+  JogTypeInfo* of_type;
+  Ref<JogCmd>  size_expr;
+  bool         resolved;
+
+  JogCmdNewArray( Ref<JogToken> t, JogTypeInfo* of_type, Ref<JogCmd> size_expr )
+    : JogCmd(t), of_type(of_type), size_expr(size_expr), resolved(false)
+  {
+  }
+
+  JogTypeInfo* type() { return of_type; }
+
+  void print()
+  {
+    printf("new ");
+    of_type->print();
+    printf("[");
+    size_expr->print();
+    printf("]");
+  }
+
+  Ref<JogCmd> resolve();
+
+  void on_push( JogVM* vm );
   void execute( JogVM* vm );
 };
 
@@ -7644,7 +7697,33 @@ struct JogCmdPostStepPropertyChar : JogCmdPostStepProperty
   void execute( JogVM* vm );
 };
 
+//=============================================================================
+//  JogCmdArraySize
+//=============================================================================
+struct JogCmdArraySize : JogCmd
+{
+  int node_type() { return __LINE__; }
 
+  Ref<JogCmd> context;
+
+  JogCmdArraySize( Ref<JogToken> t, Ref<JogCmd> context )
+    : JogCmd(t), context(context)
+  {
+  }
+
+  JogTypeInfo* type() { return jog_type_manager.type_int32; }
+
+  void print()
+  {
+    context->print();
+    printf(".length");
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm );
+  void execute( JogVM* vm );
+};
 
 //=============================================================================
 //  JogParser
@@ -7688,7 +7767,7 @@ struct JogParser : RefCounted
   Ref<JogCmd> parse_scale();
   Ref<JogCmd> parse_scale( Ref<JogCmd> lhs );
   Ref<JogCmd> parse_prefix_unary();
-  Ref<JogCmd> parse_array_decl( JogTypeInfo* array_type );
+  Ref<JogCmd> parse_array_decl( Ref<JogToken> t, JogTypeInfo* array_type );
   Ref<JogCmd> parse_postfix_unary();
   Ref<JogCmd> parse_postfix_unary( Ref<JogCmd> operand );
   Ref<JogCmd> parse_term();

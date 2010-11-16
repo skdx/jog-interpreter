@@ -241,6 +241,18 @@ void JogCmdNewObject::execute( JogVM* vm )
   }
 }
 
+void JogCmdNewArray::on_push( JogVM* vm )
+{
+  vm->push( *size_expr );
+}
+
+void JogCmdNewArray::execute( JogVM* vm )
+{
+  int size = vm->pop_int();
+  vm->push( of_type->create_array(vm,size) );
+}
+
+
 void JogCmdLogicalNot::execute( JogVM* vm ) 
 {
   if (vm->pop_data()) vm->push(0);

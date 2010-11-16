@@ -823,7 +823,7 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
     if (scanner->next_is(TOKEN_LBRACKET))
     {
       // array declaration
-      return parse_array_decl( of_type );
+      return parse_array_decl( t, of_type );
     }
     else
     {
@@ -862,7 +862,7 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
   }
 }
 
-Ref<JogCmd> JogParser::parse_array_decl( JogTypeInfo* array_type )
+Ref<JogCmd> JogParser::parse_array_decl( Ref<JogToken> t, JogTypeInfo* array_type )
 {
   // Requires: at least one specified dim ("[5]").
   Ref<JogString> new_name = new JogString(array_type->name);
@@ -871,7 +871,7 @@ Ref<JogCmd> JogParser::parse_array_decl( JogTypeInfo* array_type )
   scanner->must_consume( TOKEN_LBRACKET, "'[' expected." );
   Ref<JogCmd> expr = parse_expression();
   scanner->must_consume( TOKEN_RBRACKET, "']' expected." );
-  throw expr->error( "TODO:parse_array_decl()" );
+  return new JogCmdNewArray( t, array_type, expr );
 }
 
 // ++, --, ., (), []
