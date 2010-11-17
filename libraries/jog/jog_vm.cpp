@@ -67,6 +67,30 @@ void JogCmdLiteralBoolean::on_push( JogVM* vm ) { }
 
 void JogCmdLiteralBoolean::execute( JogVM* vm ) { vm->push( value ); }
 
+void JogCmdLiteralString::on_push( JogVM* vm ) { }
+
+void JogCmdLiteralString::execute( JogVM* vm )
+{
+  if ( !*runtime_object )
+  {
+    JogRef chars = jog_type_manager.type_char_array->create_array(vm,value->count);
+    memcpy( (JogChar*)(chars->data), value->data, value->count*2 );
+
+    int hash = 0;
+    JogChar* cur = (JogChar*) (value->data - 1);
+    int c = value->count + 1;
+    while (--c) hash = (hash << 1) + *(++cur);
+
+    JogTypeInfo* type_string = jog_type_manager.type_string;
+    runtime_object = type_string->create_instance(vm);
+
+    *((JogObject**)&(runtime_object->data[0])) = *chars;
+    chars->retain();
+    runtime_object->data[1] = hash;
+  }
+  vm->push( runtime_object );
+}
+
 void JogCmdBlock::on_push( JogVM* vm ) { }
 
 void JogCmdBlock::execute( JogVM* vm )
@@ -826,6 +850,7 @@ void JogCmdStaticCall::execute( JogVM* vm )
   int  statement_index = vm->execution_state();
   if (statement_index == 0)
   {
+    ((vm->ref_stack_ptr + (method_info->param_ref_count))[-1]).null_check(t);
     vm->push_frame( method_info );
     if (method_info->is_native())
     {
@@ -863,7 +888,7 @@ void JogCmdDynamicCall::execute( JogVM* vm )
   int  statement_index = vm->execution_state();
   if (statement_index == 0)
   {
-    JogRef obj = (vm->ref_stack_ptr + (method_info->param_ref_count))[-1];
+    ((vm->ref_stack_ptr + (method_info->param_ref_count))[-1]).null_check(t);
     m = (vm->ref_stack_ptr + (method_info->param_ref_count))[-1]
         ->type->dispatch_table[method_info->dispatch_id];
     vm->push_frame( m );
@@ -1000,21 +1025,13 @@ void JogCmdReadProperty::on_push( JogVM* vm )
 void JogCmdReadPropertyData::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to read a field of a null reference." );
-  }
-  vm->push(context->data[var_info->index]);
+  vm->push(context.null_check(t)->data[var_info->index]);
 }
 
 void JogCmdReadPropertyRef::execute( JogVM* vm )
 {
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to read a field of a null reference." );
-  }
-  vm->push( ((JogObject**)context->data)[var_info->index] );
+  vm->push( *((JogObject**)&(context.null_check(t)->data[var_info->index])) );
 }
 
 void JogCmdWriteProperty::on_push( JogVM* vm ) 
@@ -1027,11 +1044,7 @@ void JogCmdWritePropertyData::execute( JogVM* vm )
 {
   JogInt64 new_value = vm->pop_data();
   JogRef context = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to read a field of a null reference." );
-  }
-  context->data[var_info->index] = new_value;
+  context.null_check(t)->data[var_info->index] = new_value;
   vm->push( new_value );
 }
 
@@ -1039,15 +1052,10 @@ void JogCmdWritePropertyRef::execute( JogVM* vm )
 {
   JogRef new_value = vm->pop_ref();
   JogRef context   = vm->pop_ref();
-  if (*context == NULL)
-  {
-    throw error( "Null Pointer Exception - attempting to assign a field of a null reference." );
-  }
-
-  JogObject* &location = ((JogObject**)context->data)[var_info->index];
-  if (location) location->release();
-  location = *new_value;
-  if (location) location->retain();
+  JogObject** location = (JogObject**)&(context.null_check(t)->data[var_info->index]);
+  if (*location) (*location)->release();
+  *location = *new_value;
+  if (*location) (*location)->retain();
 
   vm->push( new_value );
 }

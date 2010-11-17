@@ -254,38 +254,23 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
   ArrayList<JogMethodInfo*> matches;
 
   // Add all methods with a matching name.
-  bool have_class_methods = false;
   if (context_type->class_methods_by_name.contains(name))
   {
     ArrayList<JogMethodInfo*>& class_methods = *(context_type->class_methods_by_name[name]);
-    for (int i=0; i<class_methods.count; ++i)
-    {
-      candidates.add(class_methods[i]);
-      have_class_methods = true;
-    }
+    for (int i=0; i<class_methods.count; ++i) candidates.add(class_methods[i]);
   }
 
-  bool have_object_methods = false;
   if (allow_object_methods && context_type->methods_by_name.contains(name))
   {
     ArrayList<JogMethodInfo*>& methods = *(context_type->methods_by_name[name]);
-    for (int i=0; i<methods.count; ++i)
-    {
-      candidates.add(methods[i]);
-      have_object_methods = true;
-    }
+    for (int i=0; i<methods.count; ++i) candidates.add(methods[i]);
   }
 
-  // Remove methods with insufficient number of parameters and
-  // class methods in favor of object methods.
-  bool remove_class_methods = (have_class_methods && have_object_methods);
+  // Remove methods with insufficient number of parameters.
   for (int i=0; i<candidates.count; ++i)
   {
     JogMethodInfo* m = candidates[i];
-    if (m->parameters.count == args_count)
-    {
-      if ( !(remove_class_methods && m->is_static()) ) matches.add(candidates[i]);
-    }
+    if (m->parameters.count == args_count) matches.add(candidates[i]);
   }
 
   if (matches.count == 0) 
@@ -300,6 +285,7 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
   }
 
   // Remove methods with incompatible types.
+  bool have_perfect_match = false;
   for (int i=0; i<candidates.count; ++i)
   {
     JogMethodInfo* m = candidates[i];
@@ -321,11 +307,14 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
     }
     if (perfect_match)
     {
-      matches.clear();
+      if ( !have_perfect_match )
+      {
+        matches.clear();
+        have_perfect_match = true;
+      }
       matches.add(candidates[i]);
-      break;
     }
-    else if (compatible_match)
+    else if (compatible_match && !have_perfect_match)
     {
       matches.add(candidates[i]);
     }
@@ -378,10 +367,44 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
     }
   }
 
+  // Remove class methods in favor of object methods.
+  bool have_object_methods = false;
+  bool have_class_methods = false;
+  for (int i=0; i<candidates.count; ++i)
+  {
+    if (candidates[i]->is_static()) have_class_methods = true;
+    else have_object_methods = true;
+  }
+
+  if (have_class_methods && have_object_methods)
+  {
+    for (int i=0; i<candidates.count; ++i)
+    {
+      JogMethodInfo* m = candidates[i];
+      if (m->parameters.count == args_count)
+      {
+        if ( !m->is_static() ) matches.add(candidates[i]);
+      }
+    }
+
+    if (matches.count == 0) 
+    {
+      print_candidates( t, context_type, name, args->commands, candidates );
+    }
+    else
+    {
+      candidates.clear();
+      candidates.add( matches );
+      matches.clear();
+    }
+  }
+
+  // We're left with the best match.
   if (candidates.count != 1) 
   {
     print_candidates( t, context_type, name, args->commands, candidates );
   }
+
 
   JogMethodInfo* match = candidates[0];
 

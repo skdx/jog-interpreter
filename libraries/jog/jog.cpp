@@ -33,8 +33,11 @@ void JogObject::release_refs()
       JogPropertyInfo* p = **(++cur);
       if (p->type->is_reference())
       {
-        JogObject* obj = (JogObject*)(int)data[p->index];
-        if (obj) obj->release();
+        JogObject* obj = *((JogObject**)&data[p->index]);
+        if (obj) 
+        {
+          obj->release();
+        }
       }
     }
   }
@@ -231,6 +234,7 @@ void JogVM::compile()
 {
   jog_type_manager.type_object = jog_type_manager.must_find_type("Object");
   jog_type_manager.type_string = jog_type_manager.must_find_type("String");
+  jog_type_manager.type_char_array = jog_type_manager.must_find_type("char[]");
 
   for (int i=0; i<types.count; ++i)
   {
@@ -251,12 +255,10 @@ void JogVM::run( const char* main_class_name )
     throw err;
   }
 
-//main_class->print_members();  //DEBUG
+//JogTypeInfo* debug_type = JogTypeInfo::find("String");
+//if (debug_type) debug_type->print_members();  //DEBUG
 
-  add_native_handler( "PrintWriter::print(double)", PrintWriter__print__double );
-  add_native_handler( "PrintWriter::print(int)", PrintWriter__print__int );
-  add_native_handler( "PrintWriter::print(boolean)", PrintWriter__print__boolean );
-  add_native_handler( "PrintWriter::print(char)", PrintWriter__print__char );
+  add_native_handlers();
 
   // Call static initializer blocks
   for (int i=0; i<types.count; ++i)
@@ -1352,26 +1354,5 @@ void JogMethodInfo::organize()
   }
 
   dispatch_id = jog_type_manager.dispatch_id_lookup[signature];
-}
-
-void PrintWriter__print__double( JogVM* vm )
-{
-  printf("%lf",vm->pop_double());
-}
-
-void PrintWriter__print__int( JogVM* vm )
-{
-  printf("%d",vm->pop_int());
-}
-
-void PrintWriter__print__boolean( JogVM* vm )
-{
-  if (vm->pop_int()) printf("true");
-  else               printf("false");
-}
-
-void PrintWriter__print__char( JogVM* vm )
-{
-  putchar( vm->pop_int() );
 }
 

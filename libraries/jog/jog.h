@@ -963,6 +963,7 @@ struct JogVM : RefCounted
   void parse( string filename );
   void compile();
   void run( const char* main_class_name );
+  void add_native_handlers();
 
   void add_native_handler( const char* signature, JogNativeMethodHandler handler )
   {
@@ -1535,6 +1536,7 @@ struct JogTypeManager
   JogTypeInfo* type_object;
   JogTypeInfo* type_null;
   JogTypeInfo* type_string;
+  JogTypeInfo* type_char_array;
 
   JogTypeManager()
   {
@@ -1817,6 +1819,7 @@ struct JogCmdLiteralString : JogCmd
   int node_type() { return __LINE__; }
 
   Ref<JogString> value;
+  JogRef         runtime_object;
 
   JogCmdLiteralString( Ref<JogToken> t, Ref<JogString> value ) : JogCmd(t), value(value) { }
 
@@ -1829,7 +1832,8 @@ struct JogCmdLiteralString : JogCmd
     printf("\"");
   }
 
-  //Ref<JogCmd> cast_to_type( JogTypeInfo* to_type );
+  void on_push( JogVM* vm );
+  void execute( JogVM* vm );
 };
 
 struct JogCmdArgs : JogCmdList
@@ -8119,14 +8123,6 @@ struct JogContext
     jog_context = previous_context;
   }
 };
-
-//=============================================================================
-//  Native Methods
-//=============================================================================
-void PrintWriter__print__double( JogVM* vm );
-void PrintWriter__print__int( JogVM* vm );
-void PrintWriter__print__boolean( JogVM* vm );
-void PrintWriter__print__char( JogVM* vm );
 
 #endif  //JOG_H
 

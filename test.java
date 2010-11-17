@@ -8,39 +8,21 @@
 //     - Object types
 //     - System.out.print/println for primitive types
 //     - Arrays (length, get, set)
+//     - Strings (basics)
 //
 //   TODO
-//     - Arrays (multidimensiona, +=, etc.)
-//     - Strings
+//     - Arrays (multidimensional, +=, etc.)
+//     - String concatenation
+//     - Autoboxing
 //     - Generics
 //     - Respect private/protected access qualifiers
 //     - Maybe inner classes, maybe exceptions
 
 class Test
 {
-
   Test()
   {
-
-    char[] chars = new char[12];
-
-    chars[0]  = 'H';
-    chars[1]  = 'e';
-    chars[2]  = 'l';
-    chars[3]  = 'l';
-    chars[4]  = 'o';
-    chars[5]  = ' ';
-    chars[6]  = 'W';
-    chars[7]  = 'o';
-    chars[8]  = 'r';
-    chars[9]  = 'l';
-    chars[10] = 'd';
-    chars[11] = '!';
-
-    println( chars.length );
-    for (int i=0; i<chars.length; ++i) { print( chars[i] ); }
-    print('\n');
-
+    System.out.println( "Hello World!" );
   }
 }
 
@@ -66,18 +48,48 @@ class Object
 {
   public Object() { }
 
-  static public void print( double n ) { System.out.print(n); }
-  static public void print( int n ) { System.out.print(n); }
   static public void print( boolean n ) { System.out.print(n); }
   static public void print( char ch ) { System.out.print(ch); }
-  static public void println( double n ) { System.out.println(n); }
-  static public void println( int n ) { System.out.println(n); }
+  static public void print( double n ) { System.out.print(n); }
+  static public void print( int n ) { System.out.print(n); }
+  //static public void print( Object obj ) { System.out.print(obj.toString()); }
+  static public void print( String st ) { System.out.print(st); }
   static public void println( boolean n ) { System.out.println(n); }
   static public void println( char ch ) { System.out.println(ch); }
+  static public void println( double n ) { System.out.println(n); }
+  static public void println( int n ) { System.out.println(n); }
+  //static public void println( Object obj ) { System.out.println(obj.toString()); }
+  static public void println( String st ) { System.out.println(st); }
 }
 
 class String
 {
+  // Note: the native layer assumes these two properties are defined as they are.
+  char[] data;
+  int    hash_code;
+
+  public String( char[] data )
+  {
+    int count = data.length;
+    this.data = new char[count];
+    for (int i=0; i<count; ++i)
+    {
+      char ch = data[i];
+      hash_code = (hash_code << 1) + ch;
+      this.data[i] = ch;
+    }
+  }
+
+  public int length()
+  {
+    return data.length;
+  }
+
+  public void print()
+  {
+    for (int i=0; i<data.length; ++i) { print( data[i] ); }
+    print('\n');
+  }
 }
 
 class System
@@ -92,14 +104,16 @@ class System
 
 class PrintWriter
 {
-  native void print( double n );
-  native void print( int n );
   native void print( boolean n );
   native void print( char ch );
+  native void print( double n );
+  native void print( int n );
+  native void print( String st );
 
-  void println( double n ) { print(n); print('\n'); }
-  void println( int n ) { print(n); print('\n'); }
   void println( boolean n ) { print(n); print('\n'); }
   void println( char ch ) { print(ch); print('\n'); }
+  void println( double n ) { print(n); print('\n'); }
+  void println( int n ) { print(n); print('\n'); }
+  void println( String st ) { print(st); print('\n'); }
 }
 
