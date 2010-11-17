@@ -4412,6 +4412,28 @@ struct JogCmdReturnData : JogCmdUnary
   void execute( JogVM* vm );
 };
 
+struct JogCmdReturnRef : JogCmdUnary
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdReturnRef( Ref<JogToken> t, Ref<JogCmd> operand ) : JogCmdUnary(t,operand)
+  {
+  }
+
+  JogTypeInfo* type() { return NULL; }
+
+  void print()
+  {
+    printf("returnRef ");
+    operand->print();
+  }
+
+  void on_push( JogVM* vm );
+
+  void execute( JogVM* vm );
+};
+
+
 struct JogCmdDiscardDataResult : JogCmdUnary
 {
   int node_type() { return __LINE__; }

@@ -3425,8 +3425,10 @@ Ref<JogCmd> JogCmdReturnValue::resolve()
   {
     return new JogCmdReturnData( t, operand );
   }
-
-  throw t->error( "TODO: JogCmdReturnValue::resolve()" );
+  else
+  {
+    return new JogCmdReturnRef( t, operand );
+  }
 }
 
 Ref<JogCmd> JogCmdCallSuperConstructor::resolve()

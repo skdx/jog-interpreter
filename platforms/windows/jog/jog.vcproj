@@ -181,6 +181,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\libraries\jog\jog_native.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\libraries\jog\jog_parser.cpp"
 				>
 			</File>

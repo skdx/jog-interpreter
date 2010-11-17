@@ -901,9 +901,8 @@ void JogCmdDynamicCall::execute( JogVM* vm )
   int  statement_index = vm->execution_state();
   if (statement_index == 0)
   {
-    ((vm->ref_stack_ptr + (method_info->param_ref_count))[-1]).null_check(t);
-    m = (vm->ref_stack_ptr + (method_info->param_ref_count))[-1]
-        ->type->dispatch_table[method_info->dispatch_id];
+    JogObject* obj = ((vm->ref_stack_ptr + (method_info->param_ref_count))[-1]).null_check(t);
+    m = obj->type->dispatch_table[method_info->dispatch_id];
     vm->push_frame( m );
 
     if (m->is_native())
@@ -992,6 +991,18 @@ void JogCmdReturnData::on_push( JogVM* vm )
 void JogCmdReturnData::execute( JogVM* vm )
 {
   JogInt64 result = vm->pop_data();
+  vm->pop_frame();
+  vm->push( result );
+}
+
+void JogCmdReturnRef::on_push( JogVM* vm )
+{
+  vm->push(*operand);
+}
+
+void JogCmdReturnRef::execute( JogVM* vm )
+{
+  JogRef result = vm->pop_ref();
   vm->pop_frame();
   vm->push( result );
 }

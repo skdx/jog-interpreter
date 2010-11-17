@@ -554,9 +554,12 @@ bool JogTypeInfo::is_compatible_with( JogTypeInfo* other )
 {
   if (this == other) return true;
 
-  // TODO: primitive boxing
 
-  if (this->is_reference() ^ other->is_reference()) return false;
+  if (this->is_reference() ^ other->is_reference()) 
+  {
+    //printf("TODO: jog.cpp is_compatible_with() primitive boxing\n");
+    return false;
+  }
 
   if (is_primitive())
   {
@@ -570,8 +573,10 @@ bool JogTypeInfo::is_compatible_with( JogTypeInfo* other )
     if (this  == jog_type_manager.type_int32) return false;
     return (other == jog_type_manager.type_int16 && this == jog_type_manager.type_int8);
   }
-
-  throw t->error( "TODO: is_compatible_with + instance_of for class types" );
+  else
+  {
+    return instance_of(other);
+  }
 }
 
 void JogTypeInfo::organize()

@@ -1,4 +1,10 @@
-#include <sys/time.h>
+#include <time.h>
+#include <sys/timeb.h>
+#include <sys/types.h>
+
+#if !defined(_WIN32)
+#  include <sys/time.h>
+#endif
 
 #include "jog.h"
 
@@ -60,12 +66,21 @@ void System__currentTimeMillis( JogVM* vm )
 {
   vm->pop_frame();
 
+#if defined(_WIN32)
+  struct __timeb64 time_struct;
+  JogInt64 time_ms;
+  _ftime64_s( &time_struct );
+  time_ms = (JogInt64) time_struct.time;
+  time_ms *= 1000;
+  time_ms += time_struct.millitm;
+#else
   struct timeval time_struct;
   JogInt64 time_ms;
   gettimeofday( &time_struct, 0 );
   time_ms = (JogInt64) time_struct.tv_sec;
   time_ms *= 1000;
   time_ms += (time_struct.tv_usec / 1000);
+#endif
 
   vm->push( time_ms );
 }
