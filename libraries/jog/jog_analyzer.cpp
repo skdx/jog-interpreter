@@ -113,12 +113,20 @@ void JogMethodInfo::resolve()
 
   organize();
 
-  int ref_offset = -2;
+  int ref_offset;
   int data_offset = -1;
 
   param_data_count = 0;
-  if (is_static()) param_ref_count = 0;
-  else param_ref_count = 1;  // starts at one with object context
+  if (is_static()) 
+  {
+    param_ref_count = 0;
+    ref_offset = -1;
+  }
+  else 
+  {
+    param_ref_count = 1;  // starts at one with object context
+    ref_offset = -2;
+  }
 
   for (int i=0; i<parameters.count; ++i)
   {
@@ -3043,14 +3051,7 @@ Ref<JogCmd> JogCmdMethodCall::resolve( Ref<JogCmd> context )
 Ref<JogCmd> JogCmdMethodCall::resolve( JogTypeInfo* class_context, Ref<JogCmd> context )
 {
   JogMethodInfo* m = resolve_call( t, class_context, name, *args, false );
-  if (m->is_native())
-  {
-    throw error( "TODO: native static calls" );
-  }
-  else
-  {
-    return new JogCmdClassCall( t, m, context, args );
-  }
+  return new JogCmdClassCall( t, m, context, args );
 };
 
 Ref<JogCmd> JogCmdSuperCall::resolve()
@@ -3448,17 +3449,5 @@ JogCmdThis::JogCmdThis( Ref<JogToken> t, JogTypeInfo* this_type )
   {
     throw error( "Invalid reference to 'this' object from a static method context." );
   }
-}
-
-void JogCmdArraySize::on_push( JogVM* vm )
-{
-  vm->push( *context );
-}
-
-void JogCmdArraySize::execute( JogVM* vm )
-{
-  JogRef obj = vm->pop_ref();
-  if (*obj == NULL) throw error( "Null Pointer Exception." );
-  vm->push( obj->count );
 }
 

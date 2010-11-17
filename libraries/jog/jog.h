@@ -1040,15 +1040,7 @@ struct JogVM : RefCounted
     *(--data_stack_ptr) = *((JogInt64*)&value);
   }
 
-  void push( JogRef object )
-  {
-    if (ref_stack_ptr == ref_stack)
-    {
-      Ref<JogError> err = new JogError("Reference stack limit reached during recursion.");
-      throw err;
-    }
-    *(--ref_stack_ptr) = object;
-  }
+  void push( JogRef object );
 
   JogInt64 pop_data()
   {
@@ -1495,6 +1487,7 @@ struct JogTypeInfo : RefCounted
     name->print();
     printf("\n");
     for (int i=0; i<properties.count; ++i) properties[i]->print();
+    for (int i=0; i<class_methods.count; ++i) class_methods[i]->print();
     for (int i=0; i<methods.count; ++i) methods[i]->print();
   }
 

@@ -22,7 +22,21 @@ class Test
 {
   Test()
   {
-    System.out.println( "Hello World!" );
+    println( "Hello World!" );
+
+    double start_ms = System.currentTimeMillis();
+    for (int i=1; i<=1000000; ++i)
+    {
+    }
+    double end_ms = System.currentTimeMillis();
+    println( start_ms );
+    println( end_ms );
+    println( (end_ms - start_ms) );
+
+    // This crashes - will investigate.
+    //print( "Looped a million times in " );
+    //print( (System.currentTimeMillis() - start_ms) / 1000.0 );
+    //print( " seconds." );
   }
 }
 
@@ -52,12 +66,14 @@ class Object
   static public void print( char ch ) { System.out.print(ch); }
   static public void print( double n ) { System.out.print(n); }
   static public void print( int n ) { System.out.print(n); }
+  static public void print( long n ) { System.out.print(n); }
   //static public void print( Object obj ) { System.out.print(obj.toString()); }
   static public void print( String st ) { System.out.print(st); }
   static public void println( boolean n ) { System.out.println(n); }
   static public void println( char ch ) { System.out.println(ch); }
   static public void println( double n ) { System.out.println(n); }
   static public void println( int n ) { System.out.println(n); }
+  static public void println( long n ) { System.out.println(n); }
   //static public void println( Object obj ) { System.out.println(obj.toString()); }
   static public void println( String st ) { System.out.println(st); }
 }
@@ -100,6 +116,8 @@ class System
   {
     out = new PrintWriter();
   }
+
+  native static long currentTimeMillis();
 }
 
 class PrintWriter
@@ -108,12 +126,14 @@ class PrintWriter
   native void print( char ch );
   native void print( double n );
   native void print( int n );
+  native void print( long n );
   native void print( String st );
 
   void println( boolean n ) { print(n); print('\n'); }
   void println( char ch ) { print(ch); print('\n'); }
   void println( double n ) { print(n); print('\n'); }
   void println( int n ) { print(n); print('\n'); }
+  void println( long n ) { print(n); print('\n'); }
   void println( String st ) { print(st); print('\n'); }
 }
 

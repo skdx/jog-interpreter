@@ -255,7 +255,7 @@ void JogVM::run( const char* main_class_name )
     throw err;
   }
 
-//JogTypeInfo* debug_type = JogTypeInfo::find("String");
+//JogTypeInfo* debug_type = JogTypeInfo::find("Object");
 //if (debug_type) debug_type->print_members();  //DEBUG
 
   add_native_handlers();
@@ -373,6 +373,17 @@ void JogVM::push_frame( JogMethodInfo* method_info )
 
   data_stack_ptr -= method_info->local_data_count;
   ref_stack_ptr  -= method_info->local_ref_count;
+
+}
+
+void JogVM::push( JogRef object )
+{
+  if (ref_stack_ptr == ref_stack)
+  {
+    Ref<JogError> err = new JogError("Reference stack limit reached during recursion.");
+    throw err;
+  }
+  *(--ref_stack_ptr) = object;
 }
 
 //=============================================================================

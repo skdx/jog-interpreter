@@ -87,6 +87,7 @@ void JogCmdLiteralString::execute( JogVM* vm )
     *((JogObject**)&(runtime_object->data[0])) = *chars;
     chars->retain();
     runtime_object->data[1] = hash;
+    runtime_object->retain();
   }
   vm->push( runtime_object );
 }
@@ -790,6 +791,18 @@ void JogCmdThis::execute( JogVM* vm )
   vm->push(vm->frame_ptr->ref_stack_ptr[-1]);
 }
 
+void JogCmdArraySize::on_push( JogVM* vm )
+{
+  vm->push( *context );
+}
+
+void JogCmdArraySize::execute( JogVM* vm )
+{
+  JogObject* obj = vm->pop_ref().null_check(t);
+  vm->push( obj->count );
+}
+
+
 void JogCmdNullRef::on_push( JogVM* vm ) { }
 
 void JogCmdNullRef::execute( JogVM* vm )
@@ -944,6 +957,17 @@ void JogCmdClassCall::execute( JogVM* vm )
   if (statement_index == 0)
   {
     vm->push_frame(method_info);
+    if (method_info->is_native())
+    {
+      vm->run_this_again();
+      vm->call_native( method_info );
+      return;
+    }
+  }
+  else if (method_info->is_native())
+  {
+    vm->pop_frame();
+    return;
   }
 
   RefList<JogCmd>* commands = &method_info->statements->commands;
