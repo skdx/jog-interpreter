@@ -367,7 +367,23 @@ void JogTypeInfo::add( Ref<JogMethodInfo> m )
     {
       methods_by_name[m->name] = new ArrayList<JogMethodInfo*>();
     }
-    methods_by_name[m->name]->add(*m);
+
+    if (existing)
+    {
+      ArrayList<JogMethodInfo*> &list = *methods_by_name[m->name];
+      for (int i=0; i<list.count; ++i)
+      {
+        if (list[i] == existing)
+        {
+          list[i] = *m;
+          break;
+        }
+      }
+    }
+    else
+    {
+      methods_by_name[m->name]->add(*m);
+    }
   }
 }
 
@@ -3771,10 +3787,6 @@ Ref<JogCmd> JogCmdReturnValue::resolve()
 
   if ( !return_type->instance_of(jog_context->this_method->return_type) )
   {
-return_type->print();
-printf(" <> ");
-jog_context->this_method->return_type->print();
-printf("\n");
     throw error( "Return value incompatible with declared return type." );
   }
 

@@ -857,6 +857,10 @@ void JogCmdStaticCall::execute( JogVM* vm )
     vm->run_this_again();
     vm->push( *(*commands)[statement_index] );
   }
+  else if (method_info->return_type)
+  {
+    throw method_info->t->error( "Method does not return a value in all cases." );
+  }
   else
   {
     vm->pop_frame();
@@ -897,6 +901,10 @@ void JogCmdDynamicCall::execute( JogVM* vm )
   {
     vm->run_this_again();
     vm->push( *(*commands)[statement_index] );
+  }
+  else if (method_info->return_type)
+  {
+    throw method_info->t->error( "Method does not return a value in all cases." );
   }
   else
   {
@@ -944,6 +952,10 @@ void JogCmdClassCall::execute( JogVM* vm )
   {
     vm->run_this_again();
     vm->push( *(*commands)[statement_index] );
+  }
+  else if (method_info->return_type)
+  {
+    throw method_info->t->error( "Method does not return a value in all cases." );
   }
   else
   {

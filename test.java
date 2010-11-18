@@ -27,10 +27,11 @@ class Test
     st = st + obj;
     st = "Hello " + st;
     println(st);
-    println( (new StringBuilder(2)).append("what").append("up") );
+    println( (new StringBuilder(2)).append("what").append("up").reverse() );
 
     Number n = new Integer(5);
     println(n.intValue());
+    println( new Integer(-24) );
 
     /*
     double start_ms = System.currentTimeMillis();
@@ -195,6 +196,20 @@ class StringBuilder
     data[size++] = ch;
     return this;
   }
+
+  public StringBuilder reverse()
+  {
+    int i1=0, i2=size-1;
+    while (i1 < i2)
+    {
+      char temp = data[i1];
+      data[i1] = data[i2];
+      data[i2] = temp;
+      ++i1;
+      --i2;
+    }
+    return this;
+  }
 }
 
 abstract class Number
@@ -274,9 +289,29 @@ class Integer extends Number
   long   longValue() { return (long) value; }
   short  shortValue() { return (short) value; }
 
-  //public String toString()
-  //{
-  //}
+  public String toString()
+  {
+    if (value == 0) return "0";
+    if (value == 0x80000000) return "-2147483648";
+
+    int n = value;
+    StringBuilder buffer = new StringBuilder();
+    boolean is_negative = false;
+    if (n < 0)
+    {
+      is_negative = true;
+      n = -n;
+    }
+
+    while (n > 0)
+    {
+      buffer.append( (char)((n%10)+'0') );
+      n /= 10;
+    }
+    if (is_negative) buffer.append('-');
+    
+    return buffer.reverse().toString();
+  }
 }
 
 class Long extends Number
