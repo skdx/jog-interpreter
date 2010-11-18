@@ -76,6 +76,299 @@ JogTypeInfo* JogTypeManager::find_common_type( JogToken* t,
 //=============================================================================
 //  JogTypeInfo
 //=============================================================================
+void JogTypeInfo::organize()
+{
+  if (organized) return;
+  organized = true;
+
+  element_size = sizeof(void*);
+
+  if (qualifiers == 0)
+  {
+    if (name->get(-1) == ']')
+    {
+      element_type = JogTypeInfo::reference( t, name->substring(0,name->count-3) );
+      element_type->organize();
+      qualifiers = JOG_QUALIFIER_REFERENCE;
+    }
+    else
+    {
+      StringBuilder buffer;
+      buffer.print( "Reference to undefined type '" );
+      buffer.print( name->to_ascii()->data );
+      buffer.print( "'." );
+      throw t->error( buffer.to_string() );
+    }
+  }
+
+  // Inherit base class properties and methods.
+  if ( !base_class && this != jog_type_manager.type_object )
+  {
+    base_class = jog_type_manager.type_object;
+  }
+
+  if (base_class) base_class->organize();
+
+  for (int i=0; i<interfaces.count; ++i) interfaces[i]->organize();
+}
+
+void JogTypeInfo::prep()
+{
+  if (prepped) return;
+  prepped = true;
+
+  organize();
+
+  RefList<JogMethodInfo> original_class_methods;
+  for (int i=0; i<class_methods.count; ++i) original_class_methods.add(class_methods[i]);
+  class_methods.clear();
+
+  RefList<JogMethodInfo> original_methods;
+  for (int i=0; i<methods.count; ++i) original_methods.add(methods[i]);
+  methods.clear();
+
+  if (base_class)
+  {
+    if (base_class->instance_of(this))
+    {
+      throw t->error( "Illegal cyclic inheritance." );
+    }
+
+    for (int i=base_class->properties.count-1; i>=0; --i)
+    {
+      properties.insert( base_class->properties[i] );
+    }
+
+    for (int i=0; i<base_class->class_methods.count; ++i)
+    {
+      add( base_class->class_methods[i] );
+    }
+
+    for (int i=0; i<base_class->methods.count; ++i)
+    {
+      add( base_class->methods[i] );
+    }
+  }
+
+  for (int i=0; i<original_class_methods.count; ++i)
+  {
+    add( original_class_methods[i] );
+  }
+
+  for (int i=0; i<original_methods.count; ++i)
+  {
+    add( original_methods[i] );
+  }
+
+  class_data_count = 0;
+  data_count = 0;
+
+  for (int i=0; i<class_properties.count; ++i)
+  {
+    class_properties[i]->type->organize();
+    class_properties[i]->index = i;
+    ++class_data_count;
+  }
+
+  for (int i=0; i<properties.count; ++i)
+  {
+    properties[i]->type->organize();
+    properties[i]->index = i;
+    ++data_count;
+  }
+
+  if (class_data_count)
+  {
+    class_data = new JogInt64[class_data_count];
+    memset( class_data, 0, class_data_count*8 );
+  }
+
+  object_size = sizeof(JogObject) + (data_count - 1)*8;
+
+  for (int i=0; i<class_methods.count; ++i)
+  {
+    class_methods[i]->organize();
+      // Ensures types are defined, sets up class hierarchy, and creates method
+      // signatures.
+  }
+
+  for (int i=0; i<methods.count; ++i)
+  {
+    methods[i]->organize();
+      // Ensures types are defined, sets up class hierarchy, and creates method
+      // signatures.
+  }
+
+  // Store class property initialization values in first (currently empty)
+  // static initializer block.
+  for (int i=0; i<class_properties.count; ++i)
+  {
+    JogPropertyInfo* p = *(class_properties[i]);
+    if ( *(p->initial_value) )
+    {
+      static_initializers[0]->statements->add(
+          new JogCmdAssign(
+            p->t,
+            new JogCmdIdentifier(p->t,p->name),
+            p->initial_value
+          )
+        );
+    }
+  }
+
+  if (is_reference())
+  {
+    // Add init_object for initial property value assignments.
+    JogMethodInfo* m = NULL;
+    for (int i=0; i<properties.count; ++i)
+    {
+      JogPropertyInfo* p = *(properties[i]);
+      if ( *(p->initial_value) )
+      {
+        if ( !m )
+        {
+          m = new JogMethodInfo( t, JOG_QUALIFIER_PUBLIC, 
+                this, NULL, new JogString("init_object") );
+        }
+
+        m->statements->add(
+            new JogCmdAssign(
+              p->t,
+              new JogCmdIdentifier(p->t,p->name),
+              p->initial_value
+            )
+          );
+        m->organize();
+      }
+    }
+    if (m)
+    {
+      m_init_object = m;
+      call_init_object = new JogCmdCallInitObject( m->t, m );
+    }
+
+    // Add a default constructor if necessary
+    Ref<JogString> ctor_name = new JogString("<init>");
+    if ( !methods_by_name.contains(ctor_name) )
+    {
+      methods_by_name[ctor_name] = new ArrayList<JogMethodInfo*>();
+
+      Ref<JogMethodInfo> m = new JogMethodInfo( t, 
+          JOG_QUALIFIER_PUBLIC|JOG_QUALIFIER_CONSTRUCTOR, 
+          this, NULL, ctor_name );
+      add(m);
+    }
+  }
+
+  // Add properties to lookup tables.
+  for (int i=0; i<class_properties.count; ++i)
+  {
+    JogPropertyInfo* p = *(class_properties[i]);
+    if (class_properties_by_name.contains(p->name))
+    {
+      StringBuilder buffer;
+      buffer.print( "A class property named \"" );
+      p->name->print(buffer);
+      buffer.print( "\" already exists in type \"" );
+      name->print(buffer);
+      buffer.print( "\"." );
+      throw p->t->error( buffer.to_string() );
+    }
+    class_properties_by_name[p->name] = p;
+  }
+
+  for (int i=0; i<properties.count; ++i)
+  {
+    JogPropertyInfo* p = *(properties[i]);
+    if (properties_by_name.contains(p->name))
+    {
+      StringBuilder buffer;
+      buffer.print( "A property named \"" );
+      p->name->print(buffer);
+      buffer.print( "\" already exists in type \"" );
+      name->print(buffer);
+      buffer.print( "\"." );
+      throw p->t->error( buffer.to_string() );
+    }
+    properties_by_name[p->name] = p;
+  }
+
+}
+
+void JogTypeInfo::add( Ref<JogMethodInfo> m )
+{
+  m->organize();
+
+  if (m->is_constructor() && m->is_inherited(this)) return;
+
+  if (m->is_static())
+  {
+    if (class_methods_by_signature.contains(m->full_signature))
+    {
+      if (m->is_inherited(this)) return;
+
+      JogMethodInfo* existing = class_methods_by_signature[m->full_signature];
+      if ( !existing->is_inherited(this) )
+      {
+        StringBuilder buffer;
+        buffer.print( "A class method with the signature \"" );
+        m->signature->print(buffer);
+        buffer.print( "\" already exists in type \"" );
+        name->print(buffer);
+        buffer.print( "\"." );
+        throw m->t->error( buffer.to_string() );
+      }
+    }
+
+    class_methods.add(m);
+    class_methods_by_signature[m->signature] = *m;
+
+    if ( !class_methods_by_name.contains(m->name) )
+    {
+      class_methods_by_name[m->name] = new ArrayList<JogMethodInfo*>();
+    }
+    class_methods_by_name[m->name]->add(*m);
+  }
+  else
+  {
+    dispatch_table.ensure_count(m->dispatch_id+1);
+
+    JogMethodInfo* existing = dispatch_table[m->dispatch_id];
+    if (existing)
+    {
+      if ( ((m->return_type!=NULL) ^ (existing->return_type!=NULL))
+          || (m->return_type 
+            && (m->return_type->is_primitive() ^ existing->return_type->is_primitive()))
+          || (m->return_type && !m->return_type->instance_of(existing->return_type)) )
+      {
+        throw m->t->error( "Return type incompatible with inherited method." );
+      }
+
+      if ( !existing->is_inherited(this) )
+      {
+        throw m->t->error( "A method with this signature already exists." );
+      }
+
+      methods.replace(existing,m);
+    }
+    else
+    {
+      methods.add(m);
+    }
+
+    dispatch_table[m->dispatch_id] = *m;
+
+    methods_by_signature[m->signature] = *m;
+
+    if ( !methods_by_name.contains(m->name) )
+    {
+      methods_by_name[m->name] = new ArrayList<JogMethodInfo*>();
+    }
+    methods_by_name[m->name]->add(*m);
+  }
+}
+
+
 void JogTypeInfo::resolve()
 {
   if (resolved) return;

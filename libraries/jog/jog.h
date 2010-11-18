@@ -1492,9 +1492,10 @@ struct JogTypeInfo : RefCounted
   }
 
   void organize();
-  void add( Ref<JogMethodInfo> m );
 
   void prep();
+  void add( Ref<JogMethodInfo> m );
+
   void resolve();
 
 };

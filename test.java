@@ -22,10 +22,9 @@ class Test
 {
   Test()
   {
-    println( "TODO: fix recursive error organizing types - separate method collection from class hierarchy organization." );
-    //Object obj = "Hello World!";
+    Object obj = "Hello World!";
     println( "ready" );
-    //println( obj );
+    println( obj );
 
     /*
     double start_ms = System.currentTimeMillis();
@@ -37,7 +36,7 @@ class Test
     //println( end_ms );
     //println( (end_ms - start_ms) );
 
-    // This crashes - will investigate.
+    // This might crash on Mac - will investigate.
     print( "Looped a million times in " );
     print( (System.currentTimeMillis() - start_ms) / 1000.0 );
     print( " seconds." );
