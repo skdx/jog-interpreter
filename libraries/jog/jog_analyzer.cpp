@@ -3771,6 +3771,10 @@ Ref<JogCmd> JogCmdReturnValue::resolve()
 
   if ( !return_type->instance_of(jog_context->this_method->return_type) )
   {
+return_type->print();
+printf(" <> ");
+jog_context->this_method->return_type->print();
+printf("\n");
     throw error( "Return value incompatible with declared return type." );
   }
 

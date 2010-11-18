@@ -274,6 +274,10 @@ void JogCmdNewArray::on_push( JogVM* vm )
 void JogCmdNewArray::execute( JogVM* vm )
 {
   int count = vm->pop_int();
+  if (count < 0)
+  {
+    throw error( "Illegal negative size." ); 
+  }
   vm->push( of_type->create_array(vm,count) );
 }
 
@@ -290,20 +294,10 @@ void JogCmdBitwiseNot::execute( JogVM* vm )
   vm->push( ~value );
 }
 
-void JogCmdCastReal32ToReal64::on_push( JogVM* vm )
-{
-  vm->push( *operand );
-}
-
 void JogCmdCastReal32ToReal64::execute( JogVM* vm )
 {
   double d = vm->pop_data_as_Real64();
   vm->push( (float) d );
-}
-
-void JogCmdCastIntegerToReal64::on_push( JogVM* vm )
-{
-  vm->push( *operand );
 }
 
 void JogCmdCastIntegerToReal64::execute( JogVM* vm )
@@ -312,20 +306,10 @@ void JogCmdCastIntegerToReal64::execute( JogVM* vm )
   vm->push( (double) n );
 }
 
-void JogCmdCastReal64ToReal32::on_push( JogVM* vm )
-{
-  vm->push( *operand );
-}
-
 void JogCmdCastReal64ToReal32::execute( JogVM* vm )
 {
   double d = vm->pop_data_as_Real64();
   vm->push( (float) d );
-}
-
-void JogCmdCastIntegerToReal32::on_push( JogVM* vm )
-{
-  vm->push( *operand );
 }
 
 void JogCmdCastIntegerToReal32::execute( JogVM* vm )
@@ -334,30 +318,15 @@ void JogCmdCastIntegerToReal32::execute( JogVM* vm )
   vm->push( (float) n );
 }
 
-void JogCmdCastRealToInt64::on_push( JogVM* vm )
-{
-  vm->push( *operand );
-}
-
 void JogCmdCastRealToInt64::execute( JogVM* vm )
 {
   double d = vm->pop_data_as_Real64();
   vm->push( (JogInt64) d );
 }
 
-void JogCmdCastIntegerToInt64::on_push( JogVM* vm )
-{
-  vm->push( *operand );
-}
-
 void JogCmdCastIntegerToInt64::execute( JogVM* vm )
 {
   // no action
-}
-
-void JogCmdCastRealToInt32::on_push( JogVM* vm )
-{
-  vm->push( *operand );
 }
 
 void JogCmdCastRealToInt32::execute( JogVM* vm )
@@ -366,52 +335,42 @@ void JogCmdCastRealToInt32::execute( JogVM* vm )
   vm->push( (int) d );
 }
 
-void JogCmdCastIntegerToInt32::on_push( JogVM* vm )
-{
-  vm->push( *operand );
-}
-
 void JogCmdCastIntegerToInt32::execute( JogVM* vm )
 {
-  // no action
   JogInt64 n = (JogInt64) vm->pop_data();
   vm->push( (int) n );
-}
-
-void JogCmdCastIntegerToInt16::on_push( JogVM* vm )
-{
-  vm->push( *operand );
 }
 
 void JogCmdCastIntegerToInt16::execute( JogVM* vm )
 {
-  // no action
   JogInt64 n = (JogInt64) vm->pop_data();
   vm->push( (int) n );
-}
-
-void JogCmdCastIntegerToInt8::on_push( JogVM* vm )
-{
-  vm->push( *operand );
 }
 
 void JogCmdCastIntegerToInt8::execute( JogVM* vm )
 {
-  // no action
   JogInt64 n = (JogInt64) vm->pop_data();
   vm->push( (int) n );
-}
-
-void JogCmdCastIntegerToChar::on_push( JogVM* vm )
-{
-  vm->push( *operand );
 }
 
 void JogCmdCastIntegerToChar::execute( JogVM* vm )
 {
-  // no action
   JogInt64 n = (JogInt64) vm->pop_data();
   vm->push( (int) n );
+}
+
+void JogCmdWideningCast::execute( JogVM* vm )
+{
+  // no action
+}
+
+void JogCmdNarrowingCast::execute( JogVM* vm )
+{
+  JogObject* obj = vm->peek_ref().null_check(t);
+  if ( !obj->type->instance_of(to_type) )
+  {
+    throw error ( "Illegal typecast." );
+  }
 }
 
 void JogCmdAddReal64::execute( JogVM* vm )

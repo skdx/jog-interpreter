@@ -189,6 +189,28 @@ Ref<JogCmd> JogCmd::cast_to_type( JogTypeInfo* to_type )
     }
   }
 
+  if (cur_type->is_reference() && to_type->is_reference())
+  {
+    if (cur_type->instance_of(to_type))
+    {
+      return new JogCmdWideningCast(t,this,to_type);
+    }
+    else if (to_type->instance_of(cur_type))
+    {
+      return new JogCmdNarrowingCast(t,this,to_type);
+    }
+    else
+    {
+      StringBuilder buffer;
+      buffer.print( "Cannot cast '" );
+      cur_type->name->print(buffer);
+      buffer.print( "' to '" );
+      to_type->name->print(buffer);
+      buffer.print( "'; types are unrelated." );
+      throw error( (const char*) buffer.to_string() );
+    }
+  }
+
   StringBuilder buffer;
   buffer.print( "Cannot cast '" );
   cur_type->name->print(buffer);

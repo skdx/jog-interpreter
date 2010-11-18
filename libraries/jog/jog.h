@@ -3193,15 +3193,13 @@ struct JogCmdCastReal32ToReal64 : JogCmdUnary
   { 
   }
 
-  JogTypeInfo* type() { return jog_type_manager.type_real32; }
+  JogTypeInfo* type() { return jog_type_manager.type_real64; }
 
   void print()
   {
     printf( "(double)" );
     operand->print();
   }
-
-  void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
 };
@@ -3224,8 +3222,6 @@ struct JogCmdCastIntegerToReal64 : JogCmdUnary
     operand->print();
   }
 
-  void on_push( JogVM* vm );
-
   void execute( JogVM* vm );
 };
 
@@ -3247,8 +3243,6 @@ struct JogCmdCastReal64ToReal32 : JogCmdUnary
     operand->print();
   }
 
-  void on_push( JogVM* vm );
-
   void execute( JogVM* vm );
 };
 
@@ -3268,8 +3262,6 @@ struct JogCmdCastIntegerToReal32 : JogCmdUnary
     printf( "(float)" );
     operand->print();
   }
-
-  void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
 };
@@ -3291,8 +3283,6 @@ struct JogCmdCastRealToInt64 : JogCmdUnary
     operand->print();
   }
 
-  void on_push( JogVM* vm );
-
   void execute( JogVM* vm );
 };
 
@@ -3312,8 +3302,6 @@ struct JogCmdCastIntegerToInt64 : JogCmdUnary
     printf( "(long)" );
     operand->print();
   }
-
-  void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
 };
@@ -3336,8 +3324,6 @@ struct JogCmdCastRealToInt32 : JogCmdUnary
     operand->print();
   }
 
-  void on_push( JogVM* vm );
-
   void execute( JogVM* vm );
 };
 
@@ -3357,8 +3343,6 @@ struct JogCmdCastIntegerToInt32 : JogCmdUnary
     printf( "(int)" );
     operand->print();
   }
-
-  void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
 };
@@ -3380,8 +3364,6 @@ struct JogCmdCastIntegerToInt16 : JogCmdUnary
     operand->print();
   }
 
-  void on_push( JogVM* vm );
-
   void execute( JogVM* vm );
 };
 
@@ -3401,8 +3383,6 @@ struct JogCmdCastIntegerToInt8 : JogCmdUnary
     printf( "(byte)" );
     operand->print();
   }
-
-  void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
 };
@@ -3424,7 +3404,53 @@ struct JogCmdCastIntegerToChar : JogCmdUnary
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm );
+};
+
+struct JogCmdWideningCast : JogCmdUnary
+{
+  JogTypeInfo* to_type;
+
+  int node_type() { return __LINE__; }
+
+  JogCmdWideningCast( Ref<JogToken> t, Ref<JogCmd> operand, JogTypeInfo* to_type )
+    : JogCmdUnary(t,operand), to_type(to_type)
+  { 
+  }
+
+  JogTypeInfo* type() { return to_type; }
+
+  void print()
+  {
+    printf( "(" );
+    to_type->name->print();
+    printf( ")" );
+    operand->print();
+  }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdNarrowingCast : JogCmdUnary
+{
+  JogTypeInfo* to_type;
+
+  int node_type() { return __LINE__; }
+
+  JogCmdNarrowingCast( Ref<JogToken> t, Ref<JogCmd> operand, JogTypeInfo* to_type )
+    : JogCmdUnary(t,operand), to_type(to_type)
+  { 
+  }
+
+  JogTypeInfo* type() { return to_type; }
+
+  void print()
+  {
+    printf( "(" );
+    to_type->name->print();
+    printf( ")" );
+    operand->print();
+  }
 
   void execute( JogVM* vm );
 };

@@ -27,6 +27,7 @@ class Test
     st = st + obj;
     st = "Hello " + st;
     println(st);
+    println( new StringBuilder("what up") );
 
     Number n = new Integer(5);
     println(n.intValue());
@@ -67,31 +68,6 @@ class Beta extends Alpha
 //==============================================================================
 // STANDARD LIBRARY - DON'T DELETE
 //==============================================================================
-abstract class Number
-{
-  abstract byte   byteValue();
-  abstract double doubleValue();
-  abstract float  floatValue();
-  abstract int    intValue();
-  abstract long   longValue();
-  abstract short  shortValue();
-}
-
-class Integer extends Number
-{
-  int value;
-
-  public Integer( int value )
-  {
-    this.value = value;
-  }
-
-  public int intValue()
-  {
-    return value;
-  }
-}
-
 class Object
 {
   public Object() { }
@@ -122,7 +98,11 @@ class String
 
   public String( char[] data )
   {
-    int count = data.length;
+    this( data, data.length );
+  }
+
+  public String( char[] data, int count )
+  {
     this.data = new char[count];
     for (int i=0; i<count; ++i)
     {
@@ -155,6 +135,176 @@ class String
     return new String(new_data);
   }
 }
+
+class StringBuilder
+{
+  char[] data;
+  int    size;
+
+  public StringBuilder()
+  {
+    data = new char[16];
+  }
+
+  public StringBuilder( int capacity )
+  {
+    data = new char[capacity];
+  }
+
+  public StringBuilder( String initial_contents )
+  {
+    this( initial_contents.length() );
+
+    size = initial_contents.length();
+    for (int i=0; i<size; ++i) data[i] = initial_contents.data[i];
+  }
+
+  public String toString()
+  {
+    return new String(data,size);
+  }
+}
+
+abstract class Number
+{
+  abstract byte   byteValue();
+  abstract double doubleValue();
+  abstract float  floatValue();
+  abstract int    intValue();
+  abstract long   longValue();
+  abstract short  shortValue();
+}
+
+class Byte extends Number
+{
+  byte value;
+
+  public Byte( byte value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+}
+
+class Double extends Number
+{
+  double value;
+
+  public Double( double value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+}
+
+class Float extends Number
+{
+  float value;
+
+  public Float( float value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+}
+
+class Integer extends Number
+{
+  int value;
+
+  public Integer( int value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  //public String toString()
+  //{
+  //}
+}
+
+class Long extends Number
+{
+  long value;
+
+  public Long( long value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+}
+
+class Short extends Number
+{
+  short value;
+
+  public Short( short value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+}
+
+class Boolean
+{
+  boolean value;
+
+  public Boolean( boolean value )
+  {
+    this.value = value;
+  }
+
+  boolean booleanValue() { return value; }
+}
+
+class Character
+{
+  char value;
+
+  public Character( char value )
+  {
+    this.value = value;
+  }
+
+  char charValue() { return value; }
+}
+
 
 class System
 {
