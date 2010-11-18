@@ -410,6 +410,15 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
 
   if (scanner->consume(TOKEN_RETURN))
   {
+    if (scanner->consume(TOKEN_SEMICOLON))
+    {
+      if (this_method->return_type)
+      {
+        throw t->error( "Missing value to return." );
+      }
+      return new JogCmdReturnVoid(t);
+    }
+
     Ref<JogCmd> cmd = new JogCmdReturnValue( t, parse_expression() );
     if (require_semicolon) scanner->must_consume_semicolon(t);
     return *cmd;

@@ -3142,6 +3142,25 @@ struct JogCmdArrayAccess : JogCmd
   Ref<JogCmd> resolve_assignment( Ref<JogCmd> context, Ref<JogCmd> new_value );
 };
 
+struct JogCmdReturnVoid : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdReturnVoid( Ref<JogToken> t ) : JogCmd(t)
+  {
+  }
+
+  JogTypeInfo* type() { return NULL; }
+
+  void print()
+  {
+    printf("return");
+  }
+
+  void on_push( JogVM* vm );
+  void execute( JogVM* vm );
+};
+
 struct JogCmdReturnValue : JogCmdUnary
 {
   int node_type() { return __LINE__; }

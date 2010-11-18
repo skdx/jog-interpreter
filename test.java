@@ -27,7 +27,7 @@ class Test
     st = st + obj;
     st = "Hello " + st;
     println(st);
-    println( new StringBuilder("what up") );
+    println( (new StringBuilder(2)).append("what").append("up") );
 
     Number n = new Integer(5);
     println(n.intValue());
@@ -162,6 +162,38 @@ class StringBuilder
   public String toString()
   {
     return new String(data,size);
+  }
+
+  public void ensureCapacity( int min_capacity )
+  {
+    if (data.length >= min_capacity) return;
+
+    int new_cap = data.length * 2 + 2;
+    if (min_capacity > new_cap) new_cap = min_capacity;
+
+    char[] new_data = new char[new_cap];
+    for (int i=0; i<size; ++i) new_data[i] = data[i];
+
+    data = new_data;
+  }
+
+  public StringBuilder append( String st )
+  {
+    int count = st.length();
+    ensureCapacity( size + count );
+
+    for (int i=0; i<count; ++i)
+    {
+      data[size++] = st.data[i];
+    }
+    return this;
+  }
+
+  public StringBuilder append( char ch )
+  {
+    ensureCapacity( size + 1 );
+    data[size++] = ch;
+    return this;
   }
 }
 

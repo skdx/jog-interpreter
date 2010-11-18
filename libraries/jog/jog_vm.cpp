@@ -165,6 +165,15 @@ void JogCmdFor::execute( JogVM* vm )
   }
 }
 
+void JogCmdReturnVoid::on_push( JogVM* vm )
+{
+}
+
+void JogCmdReturnVoid::execute( JogVM* vm )
+{
+  vm->pop_frame();
+}
+
 void JogCmdUnary::on_push( JogVM* vm )
 {
   vm->push( *operand );
