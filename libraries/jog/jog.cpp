@@ -176,8 +176,26 @@ Ref<JogCmd> JogCmd::cast_to_type( JogTypeInfo* to_type )
     }
   }
 
+  if (to_type == jog_type_manager.type_string)
+  {
+    if (cur_type->is_reference())
+    {
+      Ref<JogCmdList> args = new JogCmdList(t);
+      Ref<JogCmd> cmd = new JogCmdMemberAccess( t,
+          this,
+          new JogCmdMethodCall( t, new JogString("toString"), args )
+        );
+      return cmd->resolve();
+    }
+  }
 
-  throw t->error( "TODO: finish Cmd::cast_to_type()" );
+  StringBuilder buffer;
+  buffer.print( "Cannot cast '" );
+  cur_type->name->print(buffer);
+  buffer.print( "' to '" );
+  to_type->name->print(buffer);
+  buffer.print( "'." );
+  throw error( (const char*) buffer.to_string() );
 }
 
 JogTypeInfo* JogCmd::require_reference()

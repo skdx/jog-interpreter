@@ -70,7 +70,10 @@ JogTypeInfo* JogTypeManager::find_common_type( JogToken* t,
     return type_int32;
   }
 
-  throw t->error( "TODO: finish find_common_type()" );
+  if (type1->instance_of(type2)) return type2;
+  if (type2->instance_of(type1)) return type1;
+
+  throw t->error( "Types are unrelated." );
 }
 
 //=============================================================================
@@ -1134,7 +1137,37 @@ Ref<JogCmd> JogCmdAdd::resolve()
   lhs = lhs->resolve();
   rhs = rhs->resolve();
 
-  JogCmdBinary::validate();
+  JogTypeInfo* lhs_type = lhs->require_value();
+  JogTypeInfo* rhs_type = rhs->require_value();
+
+  if (lhs_type->is_reference() && lhs_type->instance_of(jog_type_manager.type_string))
+  {
+    if (rhs_type->is_reference())
+    {
+      if ( !rhs_type->instance_of(jog_type_manager.type_string) )
+      {
+        rhs = new JogCmdMemberAccess( t,
+            rhs,
+            new JogCmdMethodCall( t, new JogString("toString"), new JogCmdList(t) )
+          );
+      }
+      Ref<JogCmdList> args = new JogCmdList(t);
+      args->add(rhs);
+      return (new JogCmdMemberAccess( t, 
+            lhs,
+            new JogCmdMethodCall( t, new JogString("concat"), args )
+            ))->resolve();
+    }
+    throw error( "Invalid operands to '+'." );
+  }
+  else if (rhs_type->is_reference() && rhs_type->instance_of(jog_type_manager.type_string))
+  {
+    throw error( "Invalid operands to '+'." );
+  }
+  else
+  {
+    JogCmdBinary::validate();
+  }
 
   JogTypeInfo* op_type = lhs->type();
 
@@ -2458,13 +2491,31 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
 
     if (var_info)
     {
-      //TODO: allow String +=
-      //if (var_info->type->is_reference())
-      //{
-      //return new JogCmdWriteLocalRef( t, var_info, rhs );
-      //}
+      if (var_info->type->is_reference())
+      {
+        if ( !var_info->type->instance_of(jog_type_manager.type_string) )
+        {
+          throw error( "'+=' can only be used with numerical and String values." );
+        }
+      }
 
       rhs = rhs->resolve()->cast_to_type( var_info->type )->resolve();
+
+      if (var_info->type->is_reference())
+      {
+        // We've already established this as a String.
+        Ref<JogCmdList> args = new JogCmdList(t);
+        args->add(rhs);
+
+        Ref<JogCmd> result = new JogCmdAssign( t,
+            this,
+            new JogCmdMemberAccess( t,
+              new JogCmdIdentifier(t,name),
+              new JogCmdMethodCall(t,new JogString("concat"),args)
+            )
+          );
+        return result->resolve();
+      }
 
       if (var_info->type == jog_type_manager.type_real64)
       {

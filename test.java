@@ -8,11 +8,11 @@
 //     - Object types
 //     - System.out.print/println for primitive types
 //     - Arrays (length, get, set)
-//     - Strings (basics)
+//     - Strings (basics, string +/+= string)
 //
 //   TODO
 //     - Arrays (multidimensional, +=, etc.)
-//     - String concatenation
+//     - String +/+= primitive types
 //     - Autoboxing
 //     - Generics
 //     - Respect private/protected access qualifiers
@@ -22,9 +22,11 @@ class Test
 {
   Test()
   {
-    Object obj = "Hello World!";
-    println( "ready" );
-    println( obj );
+    String st = "World";
+    Object obj = "!";
+    st = st + obj;
+    st = "Hello " + st;
+    println(st);
 
     /*
     double start_ms = System.currentTimeMillis();
@@ -102,15 +104,27 @@ class String
     }
   }
 
+  public String toString()
+  {
+    return this;
+  }
+
   public int length()
   {
     return data.length;
   }
 
-  public void print()
+  public String concat( String other )
   {
-    for (int i=0; i<data.length; ++i) { print( data[i] ); }
-    print('\n');
+    char[] new_data = new char[data.length + other.data.length];
+
+    int c = data.length;
+    for (int i=0; i<c; ++i) new_data[i] = data[i];
+
+    int c2 = other.data.length;
+    for (int i=0; i<c2; ++i) new_data[c++] = other.data[i];
+
+    return new String(new_data);
   }
 }
 
