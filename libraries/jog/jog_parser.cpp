@@ -66,6 +66,13 @@ int JogParser::parse_type_qualifiers()
   {
     Ref<JogToken> t = scanner->peek();
 
+    // abstract
+    if (scanner->consume(TOKEN_ABSTRACT))
+    {
+      quals |= JOG_QUALIFIER_ABSTRACT;
+      continue;
+    }
+
     // public
     if (scanner->consume(TOKEN_PUBLIC))
     {
@@ -110,6 +117,13 @@ int JogParser::parse_member_qualifiers()
   for (;;)
   {
     Ref<JogToken> t = scanner->peek();
+
+    // abstract
+    if (scanner->consume(TOKEN_ABSTRACT))
+    {
+      quals |= JOG_QUALIFIER_ABSTRACT;
+      continue;
+    }
 
     // public
     if (scanner->consume(TOKEN_PUBLIC))
@@ -256,7 +270,18 @@ bool JogParser::parse_member( JogTypeInfo* type )
     {
       scanner->must_consume(TOKEN_SEMICOLON,"Expected ';' at end of native method declaration." );
     }
-    else if ( !scanner->consume(TOKEN_SEMICOLON) )
+    else if (scanner->consume(TOKEN_SEMICOLON))
+    {
+      if ( !m->is_abstract() )
+      {
+        throw m->t->error( "Methods that aren't 'abstract' must have a body (\"{...}\") instead of a semicolon." );
+      }
+      if ( !type->is_abstract() )
+      {
+        throw m->t->error( "An abstract method can only be declared in an abstract class." );
+      }
+    }
+    else
     {
       scanner->must_consume( TOKEN_LCURLY, "Opening '{' expected." );
       while ( !scanner->next_is(TOKEN_RCURLY) )

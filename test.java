@@ -28,6 +28,9 @@ class Test
     st = "Hello " + st;
     println(st);
 
+    Number n = new Integer(5);
+    println(n.intValue());
+
     /*
     double start_ms = System.currentTimeMillis();
     for (int i=1; i<=1000000; ++i)
@@ -64,6 +67,31 @@ class Beta extends Alpha
 //==============================================================================
 // STANDARD LIBRARY - DON'T DELETE
 //==============================================================================
+abstract class Number
+{
+  abstract byte   byteValue();
+  abstract double doubleValue();
+  abstract float  floatValue();
+  abstract int    intValue();
+  abstract long   longValue();
+  abstract short  shortValue();
+}
+
+class Integer extends Number
+{
+  int value;
+
+  public Integer( int value )
+  {
+    this.value = value;
+  }
+
+  public int intValue()
+  {
+    return value;
+  }
+}
+
 class Object
 {
   public Object() { }

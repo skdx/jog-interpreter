@@ -3416,7 +3416,11 @@ Ref<JogCmd> JogCmdSuperCall::resolve()
 
     if (m->is_static())
     {
-      throw error( "Illegal super() call to static method." );
+      throw error( "Illegal superclass call to a static method." );
+    }
+    else if (m->is_abstract())
+    {
+      throw error( "Illegal superclass call to an abstract method." );
     }
     else
     {
@@ -3440,6 +3444,11 @@ Ref<JogCmd> JogCmdNewObject::resolve()
   if (method_info) return this;
 
   of_type->resolve();
+  if (of_type->is_abstract())
+  {
+    throw t->error( "Cannot create an instance of an abstract class." );
+  }
+
   method_info = resolve_call( t, of_type, new JogString("<init>"), *args );
 
   return this;
