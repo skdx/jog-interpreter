@@ -204,7 +204,7 @@ bool JogParser::parse_member( JogTypeInfo* type )
     return true;
   }
 
-  JogTypeInfo*     data_type = parse_data_type();
+  JogTypeInfo* data_type = parse_data_type();
 
   if (scanner->next_is(TOKEN_LPAREN))
   {
@@ -322,7 +322,7 @@ bool JogParser::parse_member( JogTypeInfo* type )
         name = scanner->must_read_id( "Property name expected." );
       }
 
-      Ref<JogPropertyInfo> p = new JogPropertyInfo( name_t, quals, type, data_type, name, parse_initial_value() );
+      Ref<JogPropertyInfo> p = new JogPropertyInfo( name_t, quals, type, data_type, name, parse_initial_value(data_type) );
       if (p->is_static())
       {
         type->class_properties.add(*p);
@@ -384,11 +384,23 @@ JogTypeInfo* JogParser::parse_data_type( bool parse_brackets )
   return JogTypeInfo::reference( t, name );
 }
 
-Ref<JogCmd> JogParser::parse_initial_value()
+Ref<JogCmd> JogParser::parse_initial_value( JogTypeInfo* of_type )
 {
-  if ( !scanner->consume(TOKEN_ASSIGN) ) return NULL;
-
-  return parse_expression();
+  if (scanner->consume(TOKEN_ASSIGN))
+  {
+    if (scanner->next_is(TOKEN_LCURLY))
+    {
+      return parse_literal_array(of_type);
+    }
+    else
+    {
+      return parse_expression();
+    }
+  }
+  else
+  {
+    return NULL;
+  }
 }
 
 Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
@@ -504,10 +516,7 @@ Ref<JogCmd> JogParser::parse_local_var_decl( Ref<JogToken> t, JogTypeInfo* var_t
     Ref<JogToken>    t2 = scanner->peek();
     Ref<JogString>   name = scanner->must_read_id( "Identifier expected." );
     Ref<JogCmdLocalVarDeclaration> decl = new JogCmdLocalVarDeclaration(t2,var_type,name);
-    if (scanner->consume(TOKEN_ASSIGN))
-    {
-      decl->initial_value = parse_expression();
-    }
+    decl->initial_value = parse_initial_value(var_type);
     locals->add(*decl);
   }
   while (scanner->consume(TOKEN_COMMA));
@@ -904,11 +913,21 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
 
 Ref<JogCmd> JogParser::parse_array_decl( Ref<JogToken> t, JogTypeInfo* array_type )
 {
-  // Requires: at least one specified dim ("[5]").
+  // Requires at least one specified dim ("[5]") OR a {literal,list} following.
   Ref<JogString> new_name = new JogString(array_type->name);
   new_name->add( "[]" );
   array_type = JogTypeInfo::reference( array_type->t, new_name );
   scanner->must_consume( TOKEN_LBRACKET, "'[' expected." );
+
+  if (scanner->consume(TOKEN_RBRACKET))
+  {
+    if ( !scanner->next_is(TOKEN_LCURLY) )
+    {
+      throw scanner->peek()->error( "Literal array definition expected since no array size was given, e.g. \"new int[]{3,4,5}\"." );
+    }
+    return parse_literal_array(array_type);
+  }
+
   Ref<JogCmd> expr = parse_expression();
   scanner->must_consume( TOKEN_RBRACKET, "']' expected." );
   return new JogCmdNewArray( t, array_type, expr );
@@ -1115,5 +1134,23 @@ Ref<JogCmdList> JogParser::parse_args( bool required )
   }
 
   return args;
+}
+
+Ref<JogCmd> JogParser::parse_literal_array( JogTypeInfo* of_type )
+{
+  Ref<JogToken> t = scanner->read();  // open '{'
+
+  Ref<JogCmdList> terms = new JogCmdList(t);
+  if ( !scanner->consume(TOKEN_RCURLY) )
+  {
+    terms->add( parse_expression() );
+    while (scanner->consume(TOKEN_COMMA))
+    {
+      terms->add( parse_expression() );
+    }
+    scanner->must_consume(TOKEN_RCURLY,"',' or '}' expected.");
+  }
+
+  return new JogCmdLiteralArray(t,of_type,terms);
 }
 

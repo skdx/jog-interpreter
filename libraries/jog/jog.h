@@ -1480,6 +1480,8 @@ struct JogTypeInfo : RefCounted
 
   bool is_compatible_with( JogTypeInfo* other );
 
+  JogTypeInfo* wrapper_type();
+
   void print()
   {
     name->print();
@@ -1530,6 +1532,14 @@ struct JogTypeManager
   JogTypeInfo* type_int8;
   JogTypeInfo* type_char;
   JogTypeInfo* type_boolean;
+  JogTypeInfo* type_real64_wrapper;
+  JogTypeInfo* type_real32_wrapper;
+  JogTypeInfo* type_int64_wrapper;
+  JogTypeInfo* type_int32_wrapper;
+  JogTypeInfo* type_int16_wrapper;
+  JogTypeInfo* type_int8_wrapper;
+  JogTypeInfo* type_char_wrapper;
+  JogTypeInfo* type_boolean_wrapper;
   JogTypeInfo* type_object;
   JogTypeInfo* type_null;
   JogTypeInfo* type_string;
@@ -1636,7 +1646,7 @@ struct JogCmdLiteralReal32 : JogCmd
 
   void on_push( JogVM* vm );
 
-  void execute( JogVM* vm ) ;
+  void execute( JogVM* vm );
 };
 
 struct JogCmdLiteralInt64 : JogCmd
@@ -1949,7 +1959,7 @@ struct JogCmdIf : JogCmdControlStructure
 
   void on_push( JogVM* vm  );
 
-  void execute( JogVM* vm ) ;
+  void execute( JogVM* vm );
 };
 
 
@@ -1976,7 +1986,7 @@ struct JogCmdWhile : JogCmdControlStructure
 
   void on_push( JogVM* vm );
 
-  void execute( JogVM* vm ) ;
+  void execute( JogVM* vm );
 };
 
 struct JogCmdFor : JogCmdControlStructure
@@ -2010,7 +2020,7 @@ struct JogCmdFor : JogCmdControlStructure
 
   void on_push( JogVM* vm );
 
-  void execute( JogVM* vm ) ;
+  void execute( JogVM* vm );
 };
 
 struct JogCmdUnary : JogCmd
@@ -2945,6 +2955,33 @@ struct JogCmdNewArray : JogCmd
   void execute( JogVM* vm );
 };
 
+struct JogCmdLiteralArray : JogCmd
+{
+  JogTypeInfo*    of_type;
+  Ref<JogCmdList> terms;
+  bool            resolved;
+
+  JogCmdLiteralArray( Ref<JogToken> t, JogTypeInfo* of_type, Ref<JogCmdList> terms )
+    : JogCmd(t), of_type(of_type), terms(terms), resolved(false)
+  {
+  }
+
+  JogTypeInfo* type() { return of_type; }
+  
+  void print()
+  {
+    printf( "new " );
+    of_type->name->print();
+    printf( "{" );
+    terms->print();
+    printf( "}" );
+  }
+
+  Ref<JogCmd> resolve();
+
+  void on_push( JogVM* vm );
+  void execute( JogVM* vm );
+};
 
 struct JogCmdStepCount : JogCmd
 {
@@ -3067,7 +3104,7 @@ struct JogCmdLogicalNot : JogCmdUnary
 
   Ref<JogCmd> resolve();
 
-  void execute( JogVM* vm ) ;
+  void execute( JogVM* vm );
 };
 
 struct JogCmdBitwiseNot : JogCmdUnary
@@ -3087,7 +3124,7 @@ struct JogCmdBitwiseNot : JogCmdUnary
 
   Ref<JogCmd> resolve();
 
-  void execute( JogVM* vm ) ;
+  void execute( JogVM* vm );
 };
 
 struct JogCmdMemberAccess : JogCmd
@@ -8096,7 +8133,7 @@ struct JogParser : RefCounted
   bool parse_member( JogTypeInfo* type );
   void parse_params( Ref<JogMethodInfo> m );
   JogTypeInfo* parse_data_type( bool parse_brackets=true );
-  Ref<JogCmd> parse_initial_value();
+  Ref<JogCmd> parse_initial_value( JogTypeInfo* of_type );
   Ref<JogCmd> parse_statement( bool require_semicolon=true );
   Ref<JogCmd> parse_local_var_decl( Ref<JogToken> t, JogTypeInfo* var_type, bool require_semicolon );
   Ref<JogCmd> parse_expression();
@@ -8129,6 +8166,7 @@ struct JogParser : RefCounted
   Ref<JogCmd> parse_term();
   Ref<JogCmd> parse_construct();
   Ref<JogCmdList> parse_args( bool required );
+  Ref<JogCmd> parse_literal_array( JogTypeInfo* of_type );
 };
 
 //=============================================================================

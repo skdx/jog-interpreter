@@ -1,6 +1,8 @@
 #include <time.h>
 #include <sys/timeb.h>
 #include <sys/types.h>
+#include <cmath>
+using namespace std;
 
 #if !defined(_WIN32)
 #  include <sys/time.h>
@@ -10,6 +12,19 @@
 
 // See add_native_handlers() at bottom.
 
+//=============================================================================
+//  Math
+//=============================================================================
+void Math__floor__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( floor(n) );
+}
+
+//=============================================================================
+//  PrintWriter
+//=============================================================================
 void PrintWriter__print__boolean( JogVM* vm )
 {
   if (vm->pop_int()) printf("true");
@@ -62,6 +77,9 @@ void PrintWriter__print__String( JogVM* vm )
   }
 }
 
+//=============================================================================
+//  System
+//=============================================================================
 void System__currentTimeMillis( JogVM* vm )
 {
   vm->pop_frame();
@@ -88,6 +106,7 @@ void System__currentTimeMillis( JogVM* vm )
 
 void JogVM::add_native_handlers()
 {
+  add_native_handler( "Math::floor(double)", Math__floor__double );
   add_native_handler( "PrintWriter::print(boolean)", PrintWriter__print__boolean );
   add_native_handler( "PrintWriter::print(char)", PrintWriter__print__char );
   add_native_handler( "PrintWriter::print(double)", PrintWriter__print__double );

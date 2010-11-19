@@ -11,7 +11,7 @@
 //     - Strings (basics, string +/+= string)
 //
 //   TODO
-//     - Arrays (multidimensional, +=, etc.)
+//     - Arrays (multidimensional, += on element, etc.)
 //     - String +/+= primitive types
 //     - Autoboxing
 //     - Generics
@@ -20,18 +20,17 @@
 
 class Test
 {
+  String st = "Pita ";
+
   Test()
   {
-    String st = "World";
-    Object obj = "!";
-    st = st + obj;
-    st = "Hello " + st;
+    println( "abc" + 'd' );
+    println( 'w' + "xyz" );
+    String me = "Abe";
+    me += 127;
+    println( me );
+    st += "Jungle";
     println(st);
-    println( (new StringBuilder(2)).append("what").append("up").reverse() );
-
-    Number n = new Integer(5);
-    println(n.intValue());
-    println( new Integer(-24) );
 
     /*
     double start_ms = System.currentTimeMillis();
@@ -66,9 +65,334 @@ class Beta extends Alpha
   public int toInt() { return super.toInt() + 2; }
 }
 
-//==============================================================================
+//=============================================================================
 // STANDARD LIBRARY - DON'T DELETE
-//==============================================================================
+//=============================================================================
+
+//=============================================================================
+//  Math
+//=============================================================================
+class Math
+{
+  native static double floor( double n );
+}
+
+//=============================================================================
+//  Number + associated
+//  - Byte, Double, Float, Integer, Long, Short, Boolean, Character
+//=============================================================================
+
+abstract class Number
+{
+  abstract byte   byteValue();
+  abstract double doubleValue();
+  abstract float  floatValue();
+  abstract int    intValue();
+  abstract long   longValue();
+  abstract short  shortValue();
+}
+
+class Byte extends Number
+{
+  static String toString( byte b )
+  {
+    return Integer.toString(b);
+  }
+
+  // PROPERTIES
+  byte value;
+
+  // METHODS
+  public Byte( byte value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  String toString() { return toString(value); }
+}
+
+class Double extends Number
+{
+  // CLASS METHODS
+  static String toString( double n )
+  {
+    // This simple implementation prints out the full number with
+    // exactly 4 digits after the decimal point.  It uses
+    // a 'long' to store the whole and fractional parts of the
+    // number, so numbers larger than +/- 2E63 will not convert
+    // correctly.
+    boolean is_negative = false;
+    if (n < 0)
+    {
+      is_negative = true;
+      n = -n;
+    }
+
+    long whole = (long) Math.floor(n);
+
+    n = n - Math.floor(n);
+    n *= 10000.0;
+    if (n - Math.floor(n) >= 0.5) n += 1.0;  // round off
+    long decimal = (long) Math.floor(n);
+
+    String whole_st = Long.toString(whole);
+    if (is_negative) whole_st = "-" + whole_st;
+
+    String decimal_st = Long.toString(decimal);
+    while (decimal_st.length() < 4) decimal_st += "0";
+
+    return whole_st + "." + decimal_st;
+  }
+
+  // PROPERTIES
+  double value;
+
+  // METHODS
+  public Double( double value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  String toString() { return toString(value); }
+}
+
+class Float extends Number
+{
+  // CLASS METHODS
+  static String toString( float n ) { return Double.toString(n); }
+
+  // PROPERTIES
+  float value;
+
+  // METHODS
+  public Float( float value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  String toString() { return toString(value); }
+}
+
+class Integer extends Number
+{
+  // CLASS METHODS
+  static String toString( int n )
+  {
+    if (n == 0) return "0";
+    if (n == 0x80000000) return "-2147483648";
+
+    StringBuilder buffer = new StringBuilder();
+    boolean is_negative = false;
+    if (n < 0)
+    {
+      is_negative = true;
+      n = -n;
+    }
+
+    while (n > 0)
+    {
+      buffer.append( (char)((n%10)+'0') );
+      n /= 10;
+    }
+    if (is_negative) buffer.append('-');
+    
+    return buffer.reverse().toString();
+  }
+
+  // PROPERTIES
+  int value;
+
+  // METHODS
+  public Integer( int value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  public String toString()
+  {
+    return toString(value);
+  }
+}
+
+class Long extends Number
+{
+  // CLASS METHODS
+  static String toString( long n )
+  {
+    if (n == 0) return "0";
+    if (n == 0x8000000000000000L) return "-9223372036854775808";
+
+    StringBuilder buffer = new StringBuilder();
+    boolean is_negative = false;
+    if (n < 0)
+    {
+      is_negative = true;
+      n = -n;
+    }
+
+    while (n > 0)
+    {
+      buffer.append( (char)((n%10)+'0') );
+      n /= 10;
+    }
+    if (is_negative) buffer.append('-');
+    
+    return buffer.reverse().toString();
+  }
+
+  // PROPERTIES
+  long value;
+
+  // METHODS
+  public Long( long value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  public String toString()
+  {
+    return toString(value);
+  }
+}
+
+class Short extends Number
+{
+  // CLASS METHODS
+  static String toString( short n ) { return Integer.toString(n); }
+
+  // PROPERTIES
+  short value;
+
+  // METHODS
+  public Short( short value )
+  {
+    this.value = value;
+  }
+
+  byte   byteValue() { return (byte) value; }
+  double doubleValue() { return (double) value; }
+  float  floatValue() { return (float) value; }
+  int    intValue() { return (int) value; }
+  long   longValue() { return (long) value; }
+  short  shortValue() { return (short) value; }
+
+  String toString() { return toString(value); }
+}
+
+class Boolean
+{
+  // CLASS METHODS
+  static String toString( boolean b )
+  {
+    if (b) return "true";
+    return "false";
+  }
+
+  // PROPERTIES
+  boolean value;
+
+  // METHODS
+  public Boolean( boolean value )
+  {
+    this.value = value;
+  }
+
+  boolean booleanValue() { return value; }
+
+  String toString() { return toString(value); }
+}
+
+class Character
+{
+  static String[] ascii_strings =
+  {
+    "", "", "", "", "", "", "", "",
+    "\t", "\n", "", "", "\r", "", "", "",
+    "", "", "", "", "", "", "", "",
+    "", "", "", "", "", "", "", "",
+    " ", "!", "\"", "#", "$", "%", "&", "'",
+    "(", ")", "*", "+", ",", "-", ".", "/",
+    "0", "1", "2", "3", "4", "5", "6", "7",
+    "8", "9", ":", ";", "<", "=", ">", "?",
+    "@", "A", "B", "C", "D", "E", "F", "G",
+    "H", "I", "J", "K", "L", "M", "N", "O",
+    "P", "Q", "R", "S", "T", "U", "V", "W",
+    "X", "Y", "Z", "[", "\\", "]", "^", "_",
+    "`", "a", "b", "c", "d", "e", "f", "g",
+    "h", "i", "j", "k", "l", "m", "n", "o",
+    "p", "q", "r", "s", "t", "u", "v", "w",
+    "x", "y", "z", "{", "|", "}", "~", "" 
+  };
+
+  // CLASS METHODS
+  static String toString( char ch )
+  {
+    if (ch < 128)
+    {
+      String result = ascii_strings[ch];
+      if (result == null)
+      {
+        result = new String( new char[]{ch} );
+        ascii_strings[ch] = result;
+      }
+      return result;
+    }
+    else
+    {
+      return new String( new char[]{ch} );
+    }
+  }
+
+  // PROPERTIES
+  char value;
+
+  // METHODS
+  public Character( char value )
+  {
+    this.value = value;
+  }
+
+  char charValue() { return value; }
+
+  String toString() { return toString(value); }
+}
+
+
 class Object
 {
   public Object() { }
@@ -211,167 +535,6 @@ class StringBuilder
     return this;
   }
 }
-
-abstract class Number
-{
-  abstract byte   byteValue();
-  abstract double doubleValue();
-  abstract float  floatValue();
-  abstract int    intValue();
-  abstract long   longValue();
-  abstract short  shortValue();
-}
-
-class Byte extends Number
-{
-  byte value;
-
-  public Byte( byte value )
-  {
-    this.value = value;
-  }
-
-  byte   byteValue() { return (byte) value; }
-  double doubleValue() { return (double) value; }
-  float  floatValue() { return (float) value; }
-  int    intValue() { return (int) value; }
-  long   longValue() { return (long) value; }
-  short  shortValue() { return (short) value; }
-}
-
-class Double extends Number
-{
-  double value;
-
-  public Double( double value )
-  {
-    this.value = value;
-  }
-
-  byte   byteValue() { return (byte) value; }
-  double doubleValue() { return (double) value; }
-  float  floatValue() { return (float) value; }
-  int    intValue() { return (int) value; }
-  long   longValue() { return (long) value; }
-  short  shortValue() { return (short) value; }
-}
-
-class Float extends Number
-{
-  float value;
-
-  public Float( float value )
-  {
-    this.value = value;
-  }
-
-  byte   byteValue() { return (byte) value; }
-  double doubleValue() { return (double) value; }
-  float  floatValue() { return (float) value; }
-  int    intValue() { return (int) value; }
-  long   longValue() { return (long) value; }
-  short  shortValue() { return (short) value; }
-}
-
-class Integer extends Number
-{
-  int value;
-
-  public Integer( int value )
-  {
-    this.value = value;
-  }
-
-  byte   byteValue() { return (byte) value; }
-  double doubleValue() { return (double) value; }
-  float  floatValue() { return (float) value; }
-  int    intValue() { return (int) value; }
-  long   longValue() { return (long) value; }
-  short  shortValue() { return (short) value; }
-
-  public String toString()
-  {
-    if (value == 0) return "0";
-    if (value == 0x80000000) return "-2147483648";
-
-    int n = value;
-    StringBuilder buffer = new StringBuilder();
-    boolean is_negative = false;
-    if (n < 0)
-    {
-      is_negative = true;
-      n = -n;
-    }
-
-    while (n > 0)
-    {
-      buffer.append( (char)((n%10)+'0') );
-      n /= 10;
-    }
-    if (is_negative) buffer.append('-');
-    
-    return buffer.reverse().toString();
-  }
-}
-
-class Long extends Number
-{
-  long value;
-
-  public Long( long value )
-  {
-    this.value = value;
-  }
-
-  byte   byteValue() { return (byte) value; }
-  double doubleValue() { return (double) value; }
-  float  floatValue() { return (float) value; }
-  int    intValue() { return (int) value; }
-  long   longValue() { return (long) value; }
-  short  shortValue() { return (short) value; }
-}
-
-class Short extends Number
-{
-  short value;
-
-  public Short( short value )
-  {
-    this.value = value;
-  }
-
-  byte   byteValue() { return (byte) value; }
-  double doubleValue() { return (double) value; }
-  float  floatValue() { return (float) value; }
-  int    intValue() { return (int) value; }
-  long   longValue() { return (long) value; }
-  short  shortValue() { return (short) value; }
-}
-
-class Boolean
-{
-  boolean value;
-
-  public Boolean( boolean value )
-  {
-    this.value = value;
-  }
-
-  boolean booleanValue() { return value; }
-}
-
-class Character
-{
-  char value;
-
-  public Character( char value )
-  {
-    this.value = value;
-  }
-
-  char charValue() { return value; }
-}
-
 
 class System
 {

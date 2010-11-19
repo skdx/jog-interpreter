@@ -276,6 +276,23 @@ void JogVM::compile()
   jog_type_manager.type_string = jog_type_manager.must_find_type("String");
   jog_type_manager.type_char_array = jog_type_manager.must_find_type("char[]");
 
+  jog_type_manager.type_real64_wrapper = jog_type_manager.must_find_type("Double");
+  jog_type_manager.type_real32_wrapper = jog_type_manager.must_find_type("Float");
+  jog_type_manager.type_int64_wrapper = jog_type_manager.must_find_type("Long");
+  jog_type_manager.type_int32_wrapper = jog_type_manager.must_find_type("Integer");
+  jog_type_manager.type_int16_wrapper = jog_type_manager.must_find_type("Short");
+  jog_type_manager.type_int8_wrapper = jog_type_manager.must_find_type("Byte");
+  jog_type_manager.type_char_wrapper = jog_type_manager.must_find_type("Character");
+  jog_type_manager.type_boolean_wrapper = jog_type_manager.must_find_type("Boolean");
+  jog_type_manager.type_real64_wrapper->prep();
+  jog_type_manager.type_real32_wrapper->prep();
+  jog_type_manager.type_int64_wrapper->prep();
+  jog_type_manager.type_int32_wrapper->prep();
+  jog_type_manager.type_int16_wrapper->prep();
+  jog_type_manager.type_int8_wrapper->prep();
+  jog_type_manager.type_char_wrapper->prep();
+  jog_type_manager.type_boolean_wrapper->prep();
+
   for (int i=0; i<types.count; ++i)
   {
     types[i]->resolve();
@@ -617,6 +634,45 @@ bool JogTypeInfo::is_compatible_with( JogTypeInfo* other )
   {
     return instance_of(other);
   }
+}
+
+JogTypeInfo* JogTypeInfo::wrapper_type()
+{
+  if (this == jog_type_manager.type_real64)
+  {
+    return jog_type_manager.type_real64_wrapper;
+  }
+  if (this == jog_type_manager.type_real32)
+  {
+    return jog_type_manager.type_real32_wrapper;
+  }
+  if (this == jog_type_manager.type_int64)
+  {
+    return jog_type_manager.type_int64_wrapper;
+  }
+  if (this == jog_type_manager.type_int32)
+  {
+    return jog_type_manager.type_int32_wrapper;
+  }
+  if (this == jog_type_manager.type_int16)
+  {
+    return jog_type_manager.type_int16_wrapper;
+  }
+  if (this == jog_type_manager.type_int8)
+  {
+    return jog_type_manager.type_int8_wrapper;
+  }
+  if (this == jog_type_manager.type_char)
+  {
+    return jog_type_manager.type_char_wrapper;
+  }
+  if (this == jog_type_manager.type_boolean)
+  {
+    return jog_type_manager.type_boolean_wrapper;
+  }
+
+  printf( "[Internal] Wrapper for non-primitive type requested.\n" );
+  return NULL;
 }
 
 

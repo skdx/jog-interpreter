@@ -527,7 +527,10 @@ static void print_candidates( Ref<JogToken> t,
     if (i > 0) buffer16.print(',');
     args[i]->type()->name->print(buffer16);
   }
-  buffer16.print(").");
+  buffer16.print(") in type '");
+  context_type->name->print(buffer16);
+  buffer16.print("'.");
+
 
   if (methods.count)
   {
@@ -1156,29 +1159,47 @@ Ref<JogCmd> JogCmdAdd::resolve()
   JogTypeInfo* lhs_type = lhs->require_value();
   JogTypeInfo* rhs_type = rhs->require_value();
 
-  if (lhs_type->is_reference() && lhs_type->instance_of(jog_type_manager.type_string))
+  if (lhs_type->is_reference())
   {
-    if (rhs_type->is_reference())
+    if (lhs_type->instance_of(jog_type_manager.type_string))
     {
-      if ( !rhs_type->instance_of(jog_type_manager.type_string) )
+      if (rhs_type->is_reference())
       {
-        rhs = new JogCmdMemberAccess( t,
-            rhs,
-            new JogCmdMethodCall( t, new JogString("toString"), new JogCmdList(t) )
-          );
+        if ( !rhs_type->instance_of(jog_type_manager.type_string) )
+        {
+          rhs = new JogCmdMemberAccess( t,
+              rhs,
+              new JogCmdMethodCall( t, new JogString("toString"), new JogCmdList(t) )
+              );
+        }
+        Ref<JogCmdList> args = new JogCmdList(t);
+        args->add(rhs);
+        return (new JogCmdMemberAccess( t, 
+              lhs,
+              new JogCmdMethodCall( t, new JogString("concat"), args )
+              ))->resolve();
       }
-      Ref<JogCmdList> args = new JogCmdList(t);
-      args->add(rhs);
-      return (new JogCmdMemberAccess( t, 
-            lhs,
-            new JogCmdMethodCall( t, new JogString("concat"), args )
-            ))->resolve();
+      else
+      {
+        Ref<JogCmdList> args = new JogCmdList(t);
+        args->add(rhs);
+        JogMethodInfo* m = resolve_call( t, rhs_type->wrapper_type(), 
+            new JogString("toString"), *args, false );
+        rhs = new JogCmdClassCall( t, m, NULL, args );
+        return resolve();
+      }
     }
     throw error( "Invalid operands to '+'." );
   }
   else if (rhs_type->is_reference() && rhs_type->instance_of(jog_type_manager.type_string))
   {
-    throw error( "Invalid operands to '+'." );
+    // We know the LHS is a primitive
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add(lhs);
+    JogMethodInfo* m = resolve_call( t, lhs_type->wrapper_type(), 
+        new JogString("toString"), *args, false );
+    lhs = new JogCmdClassCall( t, m, NULL, args );
+    return resolve();
   }
   else
   {
@@ -2507,15 +2528,27 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
 
     if (var_info)
     {
+      rhs = rhs->resolve();
+
       if (var_info->type->is_reference())
       {
         if ( !var_info->type->instance_of(jog_type_manager.type_string) )
         {
           throw error( "'+=' can only be used with numerical and String values." );
         }
+
+        JogTypeInfo* rhs_type = rhs->require_value();
+        if (rhs_type->is_primitive())
+        {
+          Ref<JogCmdList> args = new JogCmdList(t);
+          args->add(rhs);
+          JogMethodInfo* m = resolve_call( t, rhs_type->wrapper_type(), 
+              new JogString("toString"), *args, false );
+          rhs = (new JogCmdClassCall( t, m, NULL, args ))->resolve();
+        }
       }
 
-      rhs = rhs->resolve()->cast_to_type( var_info->type )->resolve();
+      rhs = rhs->cast_to_type( var_info->type )->resolve();
 
       if (var_info->type->is_reference())
       {
@@ -2764,13 +2797,43 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
 
     if (var_info)
     {
-      //TODO: allow String +=
-      //if (var_info->type->is_reference())
-      //{
-      //return new JogCmdWriteLocalRef( t, var_info, rhs );
-      //}
+      rhs = rhs->resolve();
 
-      rhs = rhs->resolve()->cast_to_type( var_info->type )->resolve();
+      if (var_info->type->is_reference())
+      {
+        if ( !var_info->type->instance_of(jog_type_manager.type_string) )
+        {
+          throw error( "'+=' can only be used with numerical and String values." );
+        }
+
+        JogTypeInfo* rhs_type = rhs->require_value();
+        if (rhs_type->is_primitive())
+        {
+          Ref<JogCmdList> args = new JogCmdList(t);
+          args->add(rhs);
+          JogMethodInfo* m = resolve_call( t, rhs_type->wrapper_type(), 
+              new JogString("toString"), *args, false );
+          rhs = (new JogCmdClassCall( t, m, NULL, args ))->resolve();
+        }
+      }
+
+      rhs = rhs->cast_to_type( var_info->type )->resolve();
+
+      if (var_info->type->is_reference())
+      {
+        // We've already established this as a String.
+        Ref<JogCmdList> args = new JogCmdList(t);
+        args->add(rhs);
+
+        Ref<JogCmd> result = new JogCmdAssign( t,
+            this,
+            new JogCmdMemberAccess( t,
+              new JogCmdIdentifier(t,name),
+              new JogCmdMethodCall(t,new JogString("concat"),args)
+            )
+          );
+        return result->resolve();
+      }
 
       if (var_info->type == jog_type_manager.type_real64)
       {
@@ -3472,7 +3535,9 @@ Ref<JogCmd> JogCmdNewObject::resolve()
 
 Ref<JogCmd> JogCmdNewArray::resolve()
 {
+  if (resolved) return this;
   resolved = true;
+
   of_type->resolve();
   size_expr = size_expr->resolve();
 
@@ -3483,6 +3548,28 @@ Ref<JogCmd> JogCmdNewArray::resolve()
 
   return this;
 };
+
+Ref<JogCmd> JogCmdLiteralArray::resolve()
+{
+  if (resolved) return this;
+  resolved = true;
+
+  of_type->resolve();
+  if ( !of_type->is_array() )
+  {
+    throw error( "Array syntax used with a non-array datatype." );
+  }
+
+  terms->resolve();
+
+  for (int i=0; i<terms->count(); ++i)
+  {
+    terms->commands[i]->require_value();
+    terms->commands[i] = (terms->commands[i]->cast_to_type(of_type->element_type))->resolve();
+  }
+
+  return this;
+}
 
 Ref<JogCmd> JogCmdPreIncrement::resolve()
 {
@@ -3657,10 +3744,8 @@ Ref<JogCmd> JogCmdArrayAccess::resolve()
   }
 
   index_expr = index_expr->resolve();
-  if (index_expr->require_integer() != jog_type_manager.type_int32)
-  {
-    throw error( "'int' value expected." );
-  }
+  index_expr->require_integer();
+  index_expr = (index_expr->cast_to_type(jog_type_manager.type_int32))->resolve();
 
   JogTypeInfo* element_type = context_type->element_type;
   if (element_type->is_reference())
@@ -3717,10 +3802,8 @@ Ref<JogCmd> JogCmdArrayAccess::resolve_assignment( Ref<JogCmd> assignment_contex
   }
 
   index_expr = index_expr->resolve();
-  if (index_expr->require_integer() != jog_type_manager.type_int32)
-  {
-    throw error( "'int' value expected." );
-  }
+  index_expr->require_integer();
+  index_expr = (index_expr->cast_to_type(jog_type_manager.type_int32))->resolve();
 
   new_value = new_value->resolve();
   JogTypeInfo* new_value_type = new_value->require_value();

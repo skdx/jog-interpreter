@@ -290,6 +290,56 @@ void JogCmdNewArray::execute( JogVM* vm )
   vm->push( of_type->create_array(vm,count) );
 }
 
+void JogCmdLiteralArray::on_push( JogVM* vm )
+{
+}
+
+void JogCmdLiteralArray::execute( JogVM* vm )
+{
+  int execution_state = vm->execution_state();
+
+  RefList<JogCmd>* commands = &terms->commands;
+  int count = commands->count;
+
+  if (execution_state == 0)
+  {
+    if (count > 0) vm->run_this_again();
+
+    JogRef new_obj = of_type->create_array(vm,terms->count());
+    vm->push( new_obj );  // final result, repeatedly fetched to add each term
+    if (count > 0)
+    {
+      vm->push( *(*commands)[0] );
+    }
+    return;
+  }
+
+  if (execution_state < count)
+  {
+    vm->run_this_again();
+  }
+
+  // Add result of previous execution to array and
+  // push next term on stack.
+  if (of_type->element_type->is_reference())
+  {
+    // reference type
+    JogRef element = vm->pop_ref();
+    element->retain();
+    ((JogObject**)(vm->peek_ref()->data))[execution_state-1] = *element;
+  }
+  else
+  {
+    // primitive type
+    JogInt64 element = vm->pop_data();
+    vm->peek_ref()->data[execution_state-1] = element;
+  }
+
+  if (execution_state < count)
+  {
+    vm->push( *(*commands)[execution_state] );
+  }
+}
 
 void JogCmdLogicalNot::execute( JogVM* vm ) 
 {
