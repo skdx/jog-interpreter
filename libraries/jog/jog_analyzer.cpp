@@ -2534,6 +2534,7 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
       {
         if ( !var_info->type->instance_of(jog_type_manager.type_string) )
         {
+// TODO: verify this and others are actually add-assign
           throw error( "'+=' can only be used with numerical and String values." );
         }
 
@@ -3791,7 +3792,7 @@ Ref<JogCmd> JogCmdArrayAccess::resolve_assignment( Ref<JogCmd> assignment_contex
 {
   if (*assignment_context != NULL)
   {
-    throw error( "TODO: JogCmdArrayAccess::resolve_assignment( !NULL, ... )" );
+    throw error( "[Internal] JogCmdArrayAccess::resolve_assignment( !NULL, ... )" );
   }
 
   context = context->resolve();
@@ -3857,6 +3858,54 @@ Ref<JogCmd> JogCmdArrayAccess::resolve_assignment( Ref<JogCmd> assignment_contex
     return new JogCmdArrayWriteBoolean( t, context, index_expr, new_value );
   }
 }
+
+Ref<JogCmd> JogCmdArrayAccess::resolve_op_assign( int op_type, Ref<JogCmd> assignment_context,
+    Ref<JogCmd> rhs)
+{
+  if (*assignment_context != NULL)
+  {
+    throw error( "[Internal] JogCmdArrayAccess::resolve_assignment( !NULL, ... )" );
+  }
+
+  context = context->resolve();
+  JogTypeInfo* context_type = context->require_value();
+  if ( !context_type->is_array() )
+  {
+    throw context->error( "Array reference expected." );
+  }
+
+  index_expr = index_expr->resolve();
+  index_expr->require_integer();
+  index_expr = (index_expr->cast_to_type(jog_type_manager.type_int32))->resolve();
+
+  rhs = rhs->resolve();
+
+  JogTypeInfo* element_type = context_type->element_type;
+  JogTypeInfo* rhs_type = rhs->require_value();
+
+  if (element_type == jog_type_manager.type_string)
+  {
+    if (rhs_type->is_reference())
+    {
+      if ( rhs_type != jog_type_manager.type_string )
+      {
+        rhs = (new JogCmdMemberAccess( t,
+            rhs,
+            new JogCmdMethodCall( t, new JogString("toString"), new JogCmdList(t) )
+            ))->resolve();
+      }
+      throw error( "TODO: return new JogCmdString" );
+    }
+  }
+
+  throw error( "TODO: resolve [] op assign" );
+}
+
+Ref<JogCmd> JogCmdArrayAccess::resolve_stepcount_access( int when, int modifier )
+{
+  throw error( "TODO: resolve [] stepcount" );
+}
+
 
 Ref<JogCmd> JogCmdReturnValue::resolve()
 {

@@ -32,21 +32,10 @@ class Test
     st += "Jungle";
     println(st);
 
-    /*
-    double start_ms = System.currentTimeMillis();
-    for (int i=1; i<=1000000; ++i)
-    {
-    }
-    //double end_ms = System.currentTimeMillis();
-    //println( start_ms );
-    //println( end_ms );
-    //println( (end_ms - start_ms) );
-
-    // This might crash on Mac - will investigate.
-    print( "Looped a million times in " );
-    print( (System.currentTimeMillis() - start_ms) / 1000.0 );
-    print( " seconds." );
-    */
+    int[] nums = new int[24];
+    nums[0] = 5;
+    //nums[0] += 2;
+    println( nums[0] );
   }
 }
 

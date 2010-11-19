@@ -3177,6 +3177,8 @@ struct JogCmdArrayAccess : JogCmd
 
   Ref<JogCmd> resolve();
   Ref<JogCmd> resolve_assignment( Ref<JogCmd> context, Ref<JogCmd> new_value );
+  Ref<JogCmd> resolve_op_assign( int op_type, Ref<JogCmd> context, Ref<JogCmd> rhs );
+  Ref<JogCmd> resolve_stepcount_access( int when, int modifier );
 };
 
 struct JogCmdReturnVoid : JogCmd
