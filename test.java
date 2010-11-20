@@ -20,10 +20,15 @@
 
 class Test
 {
-  String st = "Pita ";
+  //static String st = "Pita ";
+  static int n;
 
   Test()
   {
+    //n+=5;
+    println( "Hello World!" );
+
+    /*
     println( "abc" + 'd' );
     println( 'w' + "xyz" );
     String me = "Abe";
@@ -31,27 +36,26 @@ class Test
     println( me );
     st += "Jungle";
     println(st);
+    */
 
-    int[] nums = new int[24];
-    nums[0] = 5;
-    //nums[0] += 2;
-    println( nums[0] );
+    //Alpha a = new Alpha("Alpha");
+    //a.name += "Leader";
+    //println(a.name);
+    //st += "Jungle";
+    //println(st);
+
+
+    //String[] names = new String[4];
+    //names[0] = "Abe";
+    //names[0] += "Pralle";
   }
 }
 
 class Alpha
 {
-  int number;
+  String name;
 
-  Alpha( int n ) { number = n; }
-
-  public int toInt() { return number; }
-}
-
-class Beta extends Alpha
-{
-  public Beta() { super(1); }
-  public int toInt() { return super.toInt() + 2; }
+  Alpha( String name ) { this.name = name; }
 }
 
 //=============================================================================

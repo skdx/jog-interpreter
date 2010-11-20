@@ -354,6 +354,43 @@ void JogVM::add_native_handler( Ref<JogString> signature, JogNativeMethodHandler
   native_methods[signature] = handler;
 }
 
+JogRef JogVM::create_object( JogTypeInfo* of_type )
+{
+  return of_type->create_instance(this);
+}
+
+JogRef JogVM::create_array( JogTypeInfo* of_type, int count )
+{
+  return of_type->create_array( this, count );
+}
+
+JogRef JogVM::create_string( JogChar* data, int count )
+{
+  JogRef chars = jog_type_manager.type_char_array->create_array(this,count);
+  memcpy( (JogChar*)(chars->data), data, count*2 );
+  return create_string( chars );
+}
+
+JogRef JogVM::create_string( JogRef array )
+{
+  JogChar* data = (JogChar*) array->data;
+  int count = array->count;
+
+  int hash = 0;
+  JogChar* cur = (JogChar*) (data - 1);
+  int c = count + 1;
+  while (--c) hash = (hash << 1) + *(++cur);
+
+  JogTypeInfo* type_string = jog_type_manager.type_string;
+  JogRef obj = type_string->create_instance(this);
+
+  *((JogObject**)&(obj->data[0])) = *array;
+  array->retain();
+  obj->data[1] = hash;
+
+  return obj;
+}
+
 void JogVM::force_garbage_collection()
 {
 printf("GC\n");

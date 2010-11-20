@@ -73,21 +73,7 @@ void JogCmdLiteralString::execute( JogVM* vm )
 {
   if ( !*runtime_object )
   {
-    JogRef chars = jog_type_manager.type_char_array->create_array(vm,value->count);
-    memcpy( (JogChar*)(chars->data), value->data, value->count*2 );
-
-    int hash = 0;
-    JogChar* cur = (JogChar*) (value->data - 1);
-    int c = value->count + 1;
-    while (--c) hash = (hash << 1) + *(++cur);
-
-    JogTypeInfo* type_string = jog_type_manager.type_string;
-    runtime_object = type_string->create_instance(vm);
-
-    *((JogObject**)&(runtime_object->data[0])) = *chars;
-    chars->retain();
-    runtime_object->data[1] = hash;
-    runtime_object->retain();
+    runtime_object = vm->create_string( (JogChar*) value->data, value->count );
   }
   vm->push( runtime_object );
 }
@@ -1659,6 +1645,49 @@ void JogCmdAddAssignProperty::on_push( JogVM* vm )
   vm->push( *context );
 }
 
+void JogCmdAddAssignPropertyString::execute( JogVM* vm )
+{
+  JogObject* st2 = vm->pop_ref().null_check(t);
+  JogRef context = vm->pop_ref();
+  JogObject** location = (JogObject**)&(context.null_check(t)->data[var_info->index]);
+
+  if (*location == NULL)
+  {
+    throw error( "Null Pointer Exception." );
+  }
+
+  JogObject* array1 = *((JogObject**)&((*location)->data[var_info->index]));
+  JogObject* array2 = *((JogObject**)&(st2->data[var_info->index]));
+
+  int count1 = array1->count;
+  int count2 = array2->count;
+
+  if (count2 == 0)
+  {
+    // original string is result
+    vm->push( *location );
+  }
+  else if (count1 == 0)
+  {
+    // right-hand string is result
+    (*location)->release();
+    *location = st2;
+    st2->retain();
+    vm->push( st2 );
+  }
+  else
+  {
+    JogRef new_data = vm->create_array( jog_type_manager.type_char_array, count1+count2 );
+    memcpy( new_data->data, array1->data, count1*2 );
+    memcpy( ((JogChar*) new_data->data) + count1, array2->data, count2*2 );
+    JogRef new_string = vm->create_string( new_data );
+    (*location)->release();
+    *location = *new_string;
+    new_string->retain();
+    vm->push( new_string );
+  }
+}
+
 void JogCmdAddAssignPropertyReal64::execute( JogVM* vm )
 {
   double operand = vm->pop_double();
@@ -2284,6 +2313,34 @@ void JogCmdSHRXAssignPropertyChar::execute( JogVM* vm )
   JogInt64& local = context.null_check(t)->data[var_info->index];
   local = (JogChar) (local >> operand);
   vm->push( local );
+}
+
+//====================================================================
+//  AddAssignArray
+//====================================================================
+void JogCmdAddAssignArray::on_push( JogVM* vm )
+{
+  vm->push( *rhs );
+  vm->push( *index_expr );
+  vm->push( *context );
+}
+
+void JogCmdAddAssignArrayString::execute( JogVM* vm )
+{
+throw error("TODO");
+/*
+  int index = vm->pop_int();
+  JogRef obj = vm->pop_ref();
+  JogObject* array = obj.null_check(t);
+  array->index_check(t,index);
+  vm->push( ((JogObject**)array->data)[index] );
+
+  JogInt64 operand = vm->pop_data();
+  JogRef   context = vm->pop_ref();
+  JogInt64& local = context.null_check(t)->data[var_info->index];
+  local = (JogChar) (local >> operand);
+  vm->push( local );
+  */
 }
 
 //--------------------------------------------------------------------
