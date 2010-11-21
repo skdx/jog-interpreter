@@ -2994,9 +2994,26 @@ struct JogCmdLiteralArray : JogCmd
   }
 
   Ref<JogCmd> resolve();
+  virtual void store_value( JogVM* vm, int index, JogInt64 value ) { }
 
   void on_push( JogVM* vm );
   void execute( JogVM* vm );
+};
+
+template <typename DataType>
+struct JogCmdLiteralArrayPrimitive : JogCmdLiteralArray
+{
+  JogCmdLiteralArrayPrimitive( Ref<JogToken> t, JogTypeInfo* of_type, Ref<JogCmdList> terms )
+    : JogCmdLiteralArray(t,of_type,terms)
+  {
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void store_value( JogVM* vm, int index, JogInt64 value )
+  {
+    ((DataType*)vm->peek_ref()->data)[index] = value;
+  }
 };
 
 struct JogCmdStepCount : JogCmd
@@ -5737,7 +5754,8 @@ struct JogCmdOpAssignClassProperty : JogCmd
       JogPropertyInfo* var_info, Ref<JogCmd> operand )
   {
     this->t = t;
-    this->context = context;
+    if (*context != NULL) this->context = context->discarding_result();
+    else                  this->context = context;
     this->var_info = var_info;
     this->operand = operand;
     return this;
@@ -5748,7 +5766,7 @@ struct JogCmdOpAssignClassProperty : JogCmd
   void on_push( JogVM* vm )
   {
     vm->push( *operand );
-    vm->push( *context );
+    if (*context) vm->push( *context );
   }
 };
 
@@ -5758,8 +5776,11 @@ struct JogCmdAddAssignClassPropertyString : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" += ");
     operand->print();
@@ -5822,8 +5843,11 @@ struct JogCmdAddAssignClassPropertyReal : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" += ");
     operand->print();
@@ -5846,8 +5870,11 @@ struct JogCmdAddAssignClassPropertyInteger : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" += ");
     operand->print();
@@ -5870,8 +5897,11 @@ struct JogCmdSubAssignClassPropertyReal : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" -= ");
     operand->print();
@@ -5894,8 +5924,11 @@ struct JogCmdSubAssignClassPropertyInteger : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" -= ");
     operand->print();
@@ -5918,8 +5951,11 @@ struct JogCmdMulAssignClassPropertyReal : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" *= ");
     operand->print();
@@ -5942,8 +5978,11 @@ struct JogCmdMulAssignClassPropertyInteger : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" *= ");
     operand->print();
@@ -5966,8 +6005,11 @@ struct JogCmdDivAssignClassPropertyReal : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" /= ");
     operand->print();
@@ -5990,8 +6032,11 @@ struct JogCmdDivAssignClassPropertyInteger : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" /= ");
     operand->print();
@@ -6014,8 +6059,11 @@ struct JogCmdModAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" %%= ");
     operand->print();
@@ -6038,8 +6086,11 @@ struct JogCmdAndAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" &= ");
     operand->print();
@@ -6062,8 +6113,11 @@ struct JogCmdOrAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" |= ");
     operand->print();
@@ -6086,8 +6140,11 @@ struct JogCmdXorAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" ^= ");
     operand->print();
@@ -6110,8 +6167,11 @@ struct JogCmdSHLAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" <<= ");
     operand->print();
@@ -6134,8 +6194,11 @@ struct JogCmdSHRXAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" >>= ");
     operand->print();
@@ -6158,8 +6221,11 @@ struct JogCmdSHRAssignClassProperty : JogCmdOpAssignClassProperty
 
   void print()
   {
-    context->print();
-    printf(".");
+    if (*context)
+    {
+      context->print();
+      printf(".");
+    }
     var_info->name->print();
     printf(" >>>= ");
     operand->print();
@@ -6177,7 +6243,7 @@ struct JogCmdSHRAssignClassProperty : JogCmdOpAssignClassProperty
 
 
 //====================================================================
-//  OpAssignArray
+//  Op-Assign Array
 //====================================================================
 struct JogCmdOpAssignArray : JogCmd
 {
@@ -6185,12 +6251,18 @@ struct JogCmdOpAssignArray : JogCmd
 
   Ref<JogCmd> context;
   Ref<JogCmd> index_expr;
-  Ref<JogCmd> rhs;
+  Ref<JogCmd> operand;
 
-  JogCmdOpAssignArray( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr, 
-      Ref<JogCmd> rhs )
-    : JogCmd(t), context(context), index_expr(index_expr), rhs(rhs)
+  JogCmdOpAssignArray() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr, 
+      Ref<JogCmd> operand )
   {
+    this->t = t;
+    this->context = context;
+    this->index_expr = index_expr;
+    this->operand = operand;
+    return this;
   }
 
   JogTypeInfo* type() { return context->type()->element_type; }
@@ -6203,1048 +6275,466 @@ struct JogCmdOpAssignArray : JogCmd
     printf("]");
   }
 
-  void on_push( JogVM* vm );
+  void on_push( JogVM* vm )
+  {
+    vm->push( *operand );
+    vm->push( *index_expr );
+    vm->push( *context );
+  }
 };
 
-struct JogCmdAddAssignArray : JogCmdOpAssignArray
+struct JogCmdAddAssignArrayString : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArray( Ref<JogToken> t, Ref<JogCmd> context, 
-      Ref<JogCmd> index_expr, Ref<JogCmd> rhs )
-    : JogCmdOpAssignArray(t,context,index_expr,rhs)
-  {
-  }
 
   void print()
   {
     JogCmdOpAssignArray::print();
     printf(" += ");
-    rhs->print();
+    operand->print();
+  }
+
+  void execute( JogVM* vm )
+  {
+    JogRef st2 = vm->pop_ref();
+    if (*st2 == NULL)
+    {
+      JogChar data[] = {'n','u','l','l'};
+      st2 = vm->create_string( data, 4 );
+    }
+
+    int index = vm->pop_int();
+    JogRef obj = vm->pop_ref();
+    JogObject* array = obj.null_check(t);
+    array->index_check(t,index);
+
+    JogObject** location = &((JogObject**)array->data)[index];
+    JogRef st1 = *location;
+    st1.null_check(t);
+
+    JogObject* array1 = *((JogObject**)&(st1->data[0]));
+    JogObject* array2 = *((JogObject**)&(st2->data[0]));
+
+    int count1 = array1->count;
+    int count2 = array2->count;
+
+    if (count2 == 0)
+    {
+      // original string is result
+      vm->push( st1 );
+    }
+    else if (count1 == 0)
+    {
+      // right-hand string is result
+      st1->release();
+      *location = *st2;
+      st2->retain();
+      vm->push( st2 );
+    }
+    else
+    {
+      JogRef new_data = vm->create_array( jog_type_manager.type_char_array, count1+count2 );
+      memcpy( new_data->data, array1->data, count1*2 );
+      memcpy( ((JogChar*) new_data->data) + count1, array2->data, count2*2 );
+      JogRef new_string = vm->create_string( new_data );
+      st1->release();
+      *location = *new_string;
+      new_string->retain();
+      vm->push( new_string );
+    }
   }
 };
 
-struct JogCmdAddAssignArrayString : JogCmdAddAssignArray
+template <typename DataType>
+struct JogCmdAddAssignArrayReal : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayString( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
-      Ref<JogCmd> rhs )
-    : JogCmdAddAssignArray(t,context,index_expr,rhs)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-/*
-struct JogCmdAddAssignArrayReal64 : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayReal64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAddAssignArrayReal32 : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayReal32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAddAssignArrayInt64 : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAddAssignArrayInt32 : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAddAssignArrayInt16 : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAddAssignArrayInt8 : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAddAssignArrayChar : JogCmdAddAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAddAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  SubAssign Property
-struct JogCmdSubAssignArray : JogCmdOpAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
+    printf(" += ");
+    operand->print();
+  }
+
+  void execute( JogVM* vm )
+  {
+    double operand = vm->pop_double();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location + operand);
+    vm->push( location );
+  }
+};
+
+template <typename DataType>
+struct JogCmdAddAssignArrayInteger : JogCmdOpAssignArray
+{
+  int node_type() { return __LINE__; }
+
+  void print()
+  {
+    JogCmdOpAssignArray::print();
+    printf(" += ");
+    operand->print();
+  }
+
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location + operand);
+    vm->push( location );
+  }
+};
+
+template <typename DataType>
+struct JogCmdSubAssignArrayReal : JogCmdOpAssignArray
+{
+  int node_type() { return __LINE__; }
+
+  void print()
+  {
+    JogCmdOpAssignArray::print();
     printf(" -= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double operand = vm->pop_double();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location - operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdSubAssignArrayReal64 : JogCmdSubAssignArray
+template <typename DataType>
+struct JogCmdSubAssignArrayInteger : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayReal64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignArrayReal32 : JogCmdSubAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayReal32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignArrayInt64 : JogCmdSubAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignArrayInt32 : JogCmdSubAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignArrayInt16 : JogCmdSubAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignArrayInt8 : JogCmdSubAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignArrayChar : JogCmdSubAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  MulAssign Property
-struct JogCmdMulAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
+    printf(" -= ");
+    operand->print();
+  }
+
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location - operand);
+    vm->push( location );
+  }
+};
+
+template <typename DataType>
+struct JogCmdMulAssignArrayReal : JogCmdOpAssignArray
+{
+  int node_type() { return __LINE__; }
+
+  void print()
+  {
+    JogCmdOpAssignArray::print();
     printf(" *= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double operand = vm->pop_double();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location * operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdMulAssignArrayReal64 : JogCmdMulAssignArray
+template <typename DataType>
+struct JogCmdMulAssignArrayInteger : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayReal64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignArrayReal32 : JogCmdMulAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayReal32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignArrayInt64 : JogCmdMulAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignArrayInt32 : JogCmdMulAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignArrayInt16 : JogCmdMulAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignArrayInt8 : JogCmdMulAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignArrayChar : JogCmdMulAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  DivAssign Property
-struct JogCmdDivAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
+    printf(" *= ");
+    operand->print();
+  }
+
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location * operand);
+    vm->push( location );
+  }
+};
+
+template <typename DataType>
+struct JogCmdDivAssignArrayReal : JogCmdOpAssignArray
+{
+  int node_type() { return __LINE__; }
+
+  void print()
+  {
+    JogCmdOpAssignArray::print();
     printf(" /= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double operand = vm->pop_double();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location / operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdDivAssignArrayReal64 : JogCmdDivAssignArray
+template <typename DataType>
+struct JogCmdDivAssignArrayInteger : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayReal64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignArrayReal32 : JogCmdDivAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayReal32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignArrayInt64 : JogCmdDivAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignArrayInt32 : JogCmdDivAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignArrayInt16 : JogCmdDivAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignArrayInt8 : JogCmdDivAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignArrayChar : JogCmdDivAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  ModAssign Property
-struct JogCmdModAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
+    printf(" /= ");
+    operand->print();
+  }
+
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location / zero_check(operand));
+    vm->push( location );
+  }
+};
+
+template <typename DataType>
+struct JogCmdModAssignArray : JogCmdOpAssignArray
+{
+  int node_type() { return __LINE__; }
+
+  void print()
+  {
+    JogCmdOpAssignArray::print();
     printf(" %%= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location % zero_check(operand));
+    vm->push( location );
+  }
 };
 
-struct JogCmdModAssignArrayInt64 : JogCmdModAssignArray
+template <typename DataType>
+struct JogCmdAndAssignArray : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdModAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignArrayInt32 : JogCmdModAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignArrayInt16 : JogCmdModAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignArrayInt8 : JogCmdModAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignArrayChar : JogCmdModAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  AndAssign Property
-struct JogCmdAndAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
     printf(" &= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location & operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdAndAssignArrayInt64 : JogCmdAndAssignArray
+template <typename DataType>
+struct JogCmdOrAssignArray : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdAndAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignArrayInt32 : JogCmdAndAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignArrayInt16 : JogCmdAndAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignArrayInt8 : JogCmdAndAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignArrayChar : JogCmdAndAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  OrAssign Property
-struct JogCmdOrAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
     printf(" |= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location | operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdOrAssignArrayInt64 : JogCmdOrAssignArray
+template <typename DataType>
+struct JogCmdXorAssignArray : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdOrAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignArrayInt32 : JogCmdOrAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignArrayInt16 : JogCmdOrAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignArrayInt8 : JogCmdOrAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignArrayChar : JogCmdOrAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  XorAssign Property
-struct JogCmdXorAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
     printf(" ^= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location ^ operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdXorAssignArrayInt64 : JogCmdXorAssignArray
+template <typename DataType>
+struct JogCmdSHLAssignArray : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdXorAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignArrayInt32 : JogCmdXorAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignArrayInt16 : JogCmdXorAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignArrayInt8 : JogCmdXorAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignArrayChar : JogCmdXorAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  SHLAssign Property
-struct JogCmdSHLAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
     printf(" <<= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location << operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdSHLAssignArrayInt64 : JogCmdSHLAssignArray
+template <typename DataType>
+struct JogCmdSHRXAssignArray : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignArrayInt32 : JogCmdSHLAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignArrayInt16 : JogCmdSHLAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignArrayInt8 : JogCmdSHLAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignArrayChar : JogCmdSHLAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  SHRAssign Property
-struct JogCmdSHRAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    context->print();
-    printf(".");
-    var_info->name->print();
-    printf(" >>>= ");
-    operand->print();
-  }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdSHRAssignArrayInt64 : JogCmdSHRAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignArrayInt32 : JogCmdSHRAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignArrayInt16 : JogCmdSHRAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignArrayInt8 : JogCmdSHRAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignArrayChar : JogCmdSHRAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//  SHRXAssign Property
-struct JogCmdSHRXAssignArray : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignArray( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand), context(context)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    context->print();
-    printf(".");
-    var_info->name->print();
+    JogCmdOpAssignArray::print();
     printf(" >>= ");
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64 operand = vm->pop_data();
+
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = (DataType) (location >> operand);
+    vm->push( location );
+  }
 };
 
-struct JogCmdSHRXAssignArrayInt64 : JogCmdSHRXAssignArray
+template <typename DataType>
+struct JogCmdSHRAssignArray : JogCmdOpAssignArray
 {
   int node_type() { return __LINE__; }
 
-  JogCmdSHRXAssignArrayInt64( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignArray(t,context,var_info,operand)
+  void print()
   {
+    JogCmdOpAssignArray::print();
+    printf(" >>>= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignArrayInt32 : JogCmdSHRXAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignArrayInt32( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignArray(t,context,var_info,operand)
+  void execute( JogVM* vm )
   {
-  }
+    JogInt64 operand = vm->pop_data();
 
-  void execute( JogVM* vm );
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+
+    DataType& location = ((DataType*)array->data)[index];
+    location = JOG_SHR( DataType, location, operand );
+    vm->push( location );
+  }
 };
 
-struct JogCmdSHRXAssignArrayInt16 : JogCmdSHRXAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignArrayInt16( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignArrayInt8 : JogCmdSHRXAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignArrayInt8( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignArrayChar : JogCmdSHRXAssignArray
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignArrayChar( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignArray(t,context,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-*/
 
 
 //====================================================================
@@ -7257,9 +6747,14 @@ struct JogCmdPreStepLocal : JogCmd
   JogLocalVarInfo* var_info;
   int              modifier;
 
-  JogCmdPreStepLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmd(t), var_info(var_info), modifier(modifier)
+  JogCmdPreStepLocal() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
   {
+    this->t = t;
+    this->var_info = var_info;
+    this->modifier = modifier;
+    return this;
   }
 
   JogTypeInfo* type() { return var_info->type; }
@@ -7276,88 +6771,30 @@ struct JogCmdPreStepLocal : JogCmd
   void on_push( JogVM* vm ) { }
 };
 
-struct JogCmdPreStepLocalReal64 : JogCmdPreStepLocal
+template <typename DataType>
+struct JogCmdPreStepLocalReal : JogCmdPreStepLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPreStepLocalReal64( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local += modifier);
+    vm->push( local );
   }
-
-  void execute( JogVM* vm );
 };
 
-struct JogCmdPreStepLocalReal32 : JogCmdPreStepLocal
+template <typename DataType>
+struct JogCmdPreStepLocalInteger : JogCmdPreStepLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPreStepLocalReal32( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local += modifier);
+    vm->push( local );
   }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepLocalInt64 : JogCmdPreStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepLocalInt32 : JogCmdPreStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepLocalInt16 : JogCmdPreStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepLocalInt8 : JogCmdPreStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepLocalChar : JogCmdPreStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPreStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
 };
 
 

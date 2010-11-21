@@ -3332,31 +3332,31 @@ Ref<JogCmd> JogCmdIdentifier::resolve_stepcount_access( int when, int modifier )
     {
       if (var_info->type == jog_type_manager.type_real64)
       {
-        return new JogCmdPreStepLocalReal64( t, var_info, modifier );
+        return (new JogCmdPreStepLocalReal<double>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_real32)
       {
-        return new JogCmdPreStepLocalReal32( t, var_info, modifier );
+        return (new JogCmdPreStepLocalReal<float>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int64)
       {
-        return new JogCmdPreStepLocalInt64( t, var_info, modifier );
+        return (new JogCmdPreStepLocalInteger<JogInt64>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int32)
       {
-        return new JogCmdPreStepLocalInt32( t, var_info, modifier );
+        return (new JogCmdPreStepLocalInteger<JogInt32>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int16)
       {
-        return new JogCmdPreStepLocalInt16( t, var_info, modifier );
+        return (new JogCmdPreStepLocalInteger<JogInt16>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int8)
       {
-        return new JogCmdPreStepLocalInt8( t, var_info, modifier );
+        return (new JogCmdPreStepLocalInteger<JogInt8>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_char)
       {
-        return new JogCmdPreStepLocalChar( t, var_info, modifier );
+        return (new JogCmdPreStepLocalInteger<JogChar>())->init( t, var_info, modifier );
       }
       else
       {
@@ -3823,6 +3823,43 @@ Ref<JogCmd> JogCmdLiteralArray::resolve()
     terms->commands[i] = (terms->commands[i]->cast_to_type(of_type->element_type))->resolve();
   }
 
+  JogTypeInfo* element_type = of_type->element_type;
+  if (element_type->is_primitive())
+  {
+    if (element_type == jog_type_manager.type_real64)
+    {
+      return new JogCmdLiteralArrayPrimitive<double>( t, of_type, terms );
+    }
+    else if (element_type == jog_type_manager.type_real32)
+    {
+      return new JogCmdLiteralArrayPrimitive<float>( t, of_type, terms );
+    }
+    else if (element_type == jog_type_manager.type_int64)
+    {
+      return new JogCmdLiteralArrayPrimitive<JogInt64>( t, of_type, terms );
+    }
+    else if (element_type == jog_type_manager.type_int32)
+    {
+      return new JogCmdLiteralArrayPrimitive<JogInt32>( t, of_type, terms );
+    }
+    else if (element_type == jog_type_manager.type_int16)
+    {
+      return new JogCmdLiteralArrayPrimitive<JogInt16>( t, of_type, terms );
+    }
+    else if (element_type == jog_type_manager.type_int8)
+    {
+      return new JogCmdLiteralArrayPrimitive<JogInt8>( t, of_type, terms );
+    }
+    else if (element_type == jog_type_manager.type_char)
+    {
+      return new JogCmdLiteralArrayPrimitive<JogChar>( t, of_type, terms );
+    }
+    else
+    {
+      return new JogCmdLiteralArrayPrimitive<char>( t, of_type, terms );
+    }
+  }
+
   return this;
 }
 
@@ -4178,10 +4215,234 @@ Ref<JogCmd> JogCmdArrayAccess::resolve_op_assign( int op_type, Ref<JogCmd> assig
           new JogString("toString"), *args, false );
       rhs = new JogCmdClassCall( t, m, NULL, args );
     }
-    return new JogCmdAddAssignArrayString( t, context, index_expr, rhs );
+    return (new JogCmdAddAssignArrayString())->init( t, context, index_expr, rhs );
   }
 
-  throw error( "TODO: resolve [] op assign" );
+  rhs = rhs->cast_to_type( element_type )->resolve();
+
+  if (element_type == jog_type_manager.type_real64)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayReal<double>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayReal<double>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayReal<double>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayReal<double>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        throw error( "Modulo can only be used on integer values." );
+      case TOKEN_AND_ASSIGN:
+        throw error( "Bitwise And can only be used on integer and boolean values." );
+      case TOKEN_OR_ASSIGN:
+        throw error( "Bitwise Or can only be used on integer and boolean values." );
+      case TOKEN_XOR_ASSIGN:
+        throw error( "Bitwise Xor can only be used on integer and boolean values." );
+      case TOKEN_SHL_ASSIGN:
+        throw error( "Left Shift can only be used on integer values." );
+      case TOKEN_SHR_ASSIGN:
+        throw error( "Right Shift can only be used on integer values." );
+      case TOKEN_SHRX_ASSIGN:
+        throw error( "Right Shift with Sign Extend can only be used on integer values." );
+    }
+  }
+  else if (element_type == jog_type_manager.type_real32)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayReal<float>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayReal<float>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayReal<float>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayReal<float>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        throw error( "Modulo can only be used on integer values." );
+      case TOKEN_AND_ASSIGN:
+        throw error( "Bitwise And can only be used on integer and boolean values." );
+      case TOKEN_OR_ASSIGN:
+        throw error( "Bitwise Or can only be used on integer and boolean values." );
+      case TOKEN_XOR_ASSIGN:
+        throw error( "Bitwise Xor can only be used on integer and boolean values." );
+      case TOKEN_SHL_ASSIGN:
+        throw error( "Left Shift can only be used on integer values." );
+      case TOKEN_SHR_ASSIGN:
+        throw error( "Right Shift can only be used on integer values." );
+      case TOKEN_SHRX_ASSIGN:
+        throw error( "Right Shift with Sign Extend can only be used on integer values." );
+    }
+  }
+  else if (element_type == jog_type_manager.type_int64)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayInteger<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayInteger<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayInteger<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayInteger<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        return (new JogCmdModAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_AND_ASSIGN:
+        return (new JogCmdAndAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_OR_ASSIGN:
+        return (new JogCmdOrAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_XOR_ASSIGN:
+        return (new JogCmdXorAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHL_ASSIGN:
+        return (new JogCmdSHLAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHR_ASSIGN:
+        return (new JogCmdSHRAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHRX_ASSIGN:
+        return (new JogCmdSHRXAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+    }
+  }
+  else if (element_type == jog_type_manager.type_int32)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayInteger<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayInteger<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayInteger<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayInteger<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        return (new JogCmdModAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_AND_ASSIGN:
+        return (new JogCmdAndAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_OR_ASSIGN:
+        return (new JogCmdOrAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_XOR_ASSIGN:
+        return (new JogCmdXorAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHL_ASSIGN:
+        return (new JogCmdSHLAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHR_ASSIGN:
+        return (new JogCmdSHRAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHRX_ASSIGN:
+        return (new JogCmdSHRXAssignArray<JogInt32>())->init( t, context, index_expr, rhs );
+    }
+  }
+  else if (element_type == jog_type_manager.type_int16)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayInteger<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayInteger<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayInteger<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayInteger<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        return (new JogCmdModAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_AND_ASSIGN:
+        return (new JogCmdAndAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_OR_ASSIGN:
+        return (new JogCmdOrAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_XOR_ASSIGN:
+        return (new JogCmdXorAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHL_ASSIGN:
+        return (new JogCmdSHLAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHR_ASSIGN:
+        return (new JogCmdSHRAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHRX_ASSIGN:
+        return (new JogCmdSHRXAssignArray<JogInt16>())->init( t, context, index_expr, rhs );
+    }
+  }
+  else if (element_type == jog_type_manager.type_int8)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayInteger<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayInteger<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayInteger<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayInteger<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        return (new JogCmdModAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_AND_ASSIGN:
+        return (new JogCmdAndAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_OR_ASSIGN:
+        return (new JogCmdOrAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_XOR_ASSIGN:
+        return (new JogCmdXorAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHL_ASSIGN:
+        return (new JogCmdSHLAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHR_ASSIGN:
+        return (new JogCmdSHRAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHRX_ASSIGN:
+        return (new JogCmdSHRXAssignArray<JogInt8>())->init( t, context, index_expr, rhs );
+    }
+  }
+  else if (element_type == jog_type_manager.type_char)
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        return (new JogCmdAddAssignArrayInteger<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_SUB_ASSIGN:
+        return (new JogCmdSubAssignArrayInteger<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_MUL_ASSIGN:
+        return (new JogCmdMulAssignArrayInteger<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_DIV_ASSIGN:
+        return (new JogCmdDivAssignArrayInteger<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_MOD_ASSIGN:
+        return (new JogCmdModAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_AND_ASSIGN:
+        return (new JogCmdAndAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_OR_ASSIGN:
+        return (new JogCmdOrAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_XOR_ASSIGN:
+        return (new JogCmdXorAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHL_ASSIGN:
+        return (new JogCmdSHLAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHR_ASSIGN:
+        return (new JogCmdSHRAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+      case TOKEN_SHRX_ASSIGN:
+        return (new JogCmdSHRXAssignArray<JogChar>())->init( t, context, index_expr, rhs );
+    }
+  }
+  else
+  {
+    switch (op_type)
+    {
+      case TOKEN_ADD_ASSIGN:
+        throw error( "Boolean values cannot be added." );
+      case TOKEN_SUB_ASSIGN:
+        throw error( "Boolean values cannot be subtracted." );
+      case TOKEN_MUL_ASSIGN:
+        throw error( "Boolean values cannot be multiplied." );
+      case TOKEN_DIV_ASSIGN:
+        throw error( "Boolean values cannot be divided." );
+      case TOKEN_MOD_ASSIGN:
+        throw error( "Modulo can only be used on integer values." );
+      case TOKEN_AND_ASSIGN:
+        return (new JogCmdAndAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_OR_ASSIGN:
+        return (new JogCmdOrAssignArray<JogInt64>())->init( t, context, index_expr, rhs );
+      case TOKEN_XOR_ASSIGN:
+      case TOKEN_SHL_ASSIGN:
+      case TOKEN_SHR_ASSIGN:
+      case TOKEN_SHRX_ASSIGN:
+        throw error( "Boolean values cannot be bit-shifted." );
+    }
+  }
+
+  throw error( "[Internal] JogCmdArrayAccess::resolve_op_assign()" );
 }
 
 Ref<JogCmd> JogCmdArrayAccess::resolve_stepcount_access( int when, int modifier )

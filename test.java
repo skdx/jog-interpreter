@@ -22,17 +22,21 @@ class Test
 
   Test()
   {
-    String[] names = new String[5];
-    names[0] = "lo";
-    println(names[0]+="hi");
+    // TODO: convert local post-increment to use template classes
+    // TODO: convert object, class, & array pre/post increment/decrement to template classes
+    int n = 5;
+    char ch = 'a';
+    println( ++n );
+    println( ++ch );
+    println( ++n );
+    println( ++ch );
 
-    short n = 32767;
-    n += 2;
-    println(n);
-
-    //int[] nums = new int[5];
-    //nums[0] += 2;
-    //println(nums);
+    char[] data = {'a','b','c'};
+    for (int i=0; i<data.length; ++i) data[i] += 2;
+    println( new String(data) );
+    println( data[0] );
+    println( data[1] );
+    println( data[2] );
   }
 }
 
