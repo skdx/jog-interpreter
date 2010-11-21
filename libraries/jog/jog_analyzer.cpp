@@ -2575,13 +2575,13 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalReal64( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalReal<double>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalReal64( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalReal<double>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalReal64( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalReal<double>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalReal64( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalReal<double>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
             throw error( "Modulo can only be used on integer values." );
           case TOKEN_AND_ASSIGN:
@@ -2603,13 +2603,13 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalReal32( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalReal<float>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalReal32( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalReal<float>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalReal32( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalReal<float>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalReal32( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalReal<float>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
             throw error( "Modulo can only be used on integer values." );
           case TOKEN_AND_ASSIGN:
@@ -2631,27 +2631,27 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdModAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdAndAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdOrAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdXorAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdSHLAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdSHRAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdSHRXAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
         }
       }
       else if (var_info->type == jog_type_manager.type_int32)
@@ -2659,27 +2659,27 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdModAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdAndAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdOrAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdXorAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdSHLAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdSHRAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
           case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt32( t, var_info, rhs );
+            return (new JogCmdSHRXAssignLocalInteger<JogInt32>())->init( t, var_info, rhs );
         }
       }
       else if (var_info->type == jog_type_manager.type_int16)
@@ -2687,27 +2687,27 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdModAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdAndAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdOrAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdXorAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdSHLAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdSHRAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
           case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt16( t, var_info, rhs );
+            return (new JogCmdSHRXAssignLocalInteger<JogInt16>())->init( t, var_info, rhs );
         }
       }
       else if (var_info->type == jog_type_manager.type_int8)
@@ -2715,27 +2715,27 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdModAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdAndAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdOrAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdXorAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdSHLAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdSHRAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
           case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt8( t, var_info, rhs );
+            return (new JogCmdSHRXAssignLocalInteger<JogInt8>())->init( t, var_info, rhs );
         }
       }
       else if (var_info->type == jog_type_manager.type_char)
@@ -2743,27 +2743,27 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
         switch (op_type)
         {
           case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdAddAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdSubAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdMulAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdDivAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdModAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdAndAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdOrAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdXorAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdSHLAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdSHRAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
           case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalChar( t, var_info, rhs );
+            return (new JogCmdSHRXAssignLocalInteger<JogChar>())->init( t, var_info, rhs );
         }
       }
       else
@@ -2781,11 +2781,11 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
           case TOKEN_MOD_ASSIGN:
             throw error( "Modulo can only be used on integer values." );
           case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdAndAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdOrAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt64( t, var_info, rhs );
+            return (new JogCmdXorAssignLocalInteger<JogInt64>())->init( t, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
           case TOKEN_SHR_ASSIGN:
           case TOKEN_SHRX_ASSIGN:

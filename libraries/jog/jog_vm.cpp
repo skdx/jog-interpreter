@@ -1138,60 +1138,6 @@ void JogCmdWriteLocalRef::execute( JogVM* vm )
   vm->frame_ptr->ref_stack_ptr[var_info->offset] = vm->peek_ref();
 }
 
-void JogCmdAddAssignLocal::on_push( JogVM* vm ) 
-{ 
-  vm->push( *operand );
-}
-
-void JogCmdAddAssignLocalReal64::execute( JogVM* vm )
-{
-  double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
-  local += vm->pop_double();
-  vm->push( local );
-}
-
-void JogCmdAddAssignLocalReal32::execute( JogVM* vm )
-{
-  double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
-  local = (float) (local + vm->pop_double());
-  vm->push( local );
-}
-
-void JogCmdAddAssignLocalInt64::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  local += vm->pop_data();
-  vm->push( local );
-}
-
-void JogCmdAddAssignLocalInt32::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  local = (JogInt32) (local + vm->pop_data());
-  vm->push( local );
-}
-
-void JogCmdAddAssignLocalInt16::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  local = (JogInt16) (local + vm->pop_data());
-  vm->push( local );
-}
-
-void JogCmdAddAssignLocalInt8::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  local = (JogInt8) (local + vm->pop_data());
-  vm->push( local );
-}
-
-void JogCmdAddAssignLocalChar::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  local = (JogChar) (local + vm->pop_data());
-  vm->push( local );
-}
-
 void JogCmdSubAssignLocal::on_push( JogVM* vm ) 
 { 
   vm->push( *operand );

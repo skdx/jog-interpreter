@@ -4939,19 +4939,35 @@ struct JogCmdWriteLocalRef : JogCmdWriteLocal
 //====================================================================
 //  AddAssign Local
 //====================================================================
-struct JogCmdAddAssignLocal : JogCmd
+struct JogCmdOpAssignLocal : JogCmd
 {
   int node_type() { return __LINE__; }
 
   JogLocalVarInfo* var_info;
   Ref<JogCmd>      operand;
 
-  JogCmdAddAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
+  JogCmdOpAssignLocal() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
   {
+    this->t = t;
+    this->var_info = var_info;
+    this->operand = operand;
+    return this;
   }
 
   JogTypeInfo* type() { return var_info->type; }
+
+  void on_push( JogVM* vm )
+  {
+    vm->push( *operand );
+  }
+};
+
+template <typename DataType>
+struct JogCmdAddAssignLocalReal : JogCmdOpAssignLocal
+{
+  int node_type() { return __LINE__; }
 
   void print()
   {
@@ -4960,93 +4976,153 @@ struct JogCmdAddAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local + vm->pop_double());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalReal64 : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdAddAssignLocalInteger : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalReal64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" += ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local + vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalReal32 : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdSubAssignLocalReal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalReal32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" -= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local - vm->pop_double());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalInt64 : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdSubAssignLocalInteger : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" -= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local - vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalInt32 : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdMulAssignLocalReal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" *= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local * vm->pop_double());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalInt16 : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdMulAssignLocalInteger : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" *= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local * vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalInt8 : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdDivAssignLocalReal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" /= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local / vm->pop_double());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAddAssignLocalChar : JogCmdAddAssignLocal
+template <typename DataType>
+struct JogCmdDivAssignLocalInteger : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdAddAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAddAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" /= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local / vm->pop_data());
+    vm->push( local );
+  }
 };
-
 
 //====================================================================
 //  SubAssign Local

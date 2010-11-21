@@ -26,6 +26,10 @@ class Test
     names[0] = "lo";
     println(names[0]+="hi");
 
+    short n = 32767;
+    n += 2;
+    println(n);
+
     //int[] nums = new int[5];
     //nums[0] += 2;
     //println(nums);
