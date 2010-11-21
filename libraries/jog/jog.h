@@ -5119,363 +5119,15 @@ struct JogCmdDivAssignLocalInteger : JogCmdOpAssignLocal
   void execute( JogVM* vm )
   {
     JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
-    local = (DataType)(local / vm->pop_data());
+    local = (DataType)(local / zero_check(vm->pop_data()));
     vm->push( local );
   }
 };
 
-//====================================================================
-//  SubAssign Local
-//====================================================================
-struct JogCmdSubAssignLocal : JogCmd
+template <typename DataType>
+struct JogCmdModAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdSubAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    var_info->name->print();
-    printf(" -= ");
-    operand->print();
-  }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalReal64 : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalReal64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalReal32 : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalReal32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalInt64 : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalInt32 : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalInt16 : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalInt8 : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSubAssignLocalChar : JogCmdSubAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSubAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSubAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  MulAssign Local
-//====================================================================
-struct JogCmdMulAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdMulAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    var_info->name->print();
-    printf(" *= ");
-    operand->print();
-  }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalReal64 : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalReal64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalReal32 : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalReal32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalInt64 : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalInt32 : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalInt16 : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalInt8 : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdMulAssignLocalChar : JogCmdMulAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdMulAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdMulAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  DivAssign Local
-//====================================================================
-struct JogCmdDivAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdDivAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    var_info->name->print();
-    printf(" /= ");
-    operand->print();
-  }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalReal64 : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalReal64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalReal32 : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalReal32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalInt64 : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalInt32 : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalInt16 : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalInt8 : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdDivAssignLocalChar : JogCmdDivAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdDivAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdDivAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  ModAssign Local
-//====================================================================
-struct JogCmdModAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdModAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
@@ -5484,86 +5136,18 @@ struct JogCmdModAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local % zero_check(vm->pop_data()));
+    vm->push( local );
+  }
 };
 
-struct JogCmdModAssignLocalInt64 : JogCmdModAssignLocal
+template <typename DataType>
+struct JogCmdAndAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
-
-  JogCmdModAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignLocalInt32 : JogCmdModAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignLocalInt16 : JogCmdModAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignLocalInt8 : JogCmdModAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdModAssignLocalChar : JogCmdModAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdModAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdModAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  AndAssign Local
-//====================================================================
-struct JogCmdAndAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdAndAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
@@ -5572,86 +5156,18 @@ struct JogCmdAndAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local & vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdAndAssignLocalInt64 : JogCmdAndAssignLocal
+template <typename DataType>
+struct JogCmdOrAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
-
-  JogCmdAndAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignLocalInt32 : JogCmdAndAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignLocalInt16 : JogCmdAndAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignLocalInt8 : JogCmdAndAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdAndAssignLocalChar : JogCmdAndAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdAndAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdAndAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  OrAssign Local
-//====================================================================
-struct JogCmdOrAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdOrAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
@@ -5660,86 +5176,18 @@ struct JogCmdOrAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local | vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdOrAssignLocalInt64 : JogCmdOrAssignLocal
+template <typename DataType>
+struct JogCmdXorAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
-
-  JogCmdOrAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignLocalInt32 : JogCmdOrAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignLocalInt16 : JogCmdOrAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignLocalInt8 : JogCmdOrAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdOrAssignLocalChar : JogCmdOrAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdOrAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdOrAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  XorAssign Local
-//====================================================================
-struct JogCmdXorAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdXorAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
@@ -5748,86 +5196,18 @@ struct JogCmdXorAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local ^ vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdXorAssignLocalInt64 : JogCmdXorAssignLocal
+template <typename DataType>
+struct JogCmdSHLAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
-
-  JogCmdXorAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignLocalInt32 : JogCmdXorAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignLocalInt16 : JogCmdXorAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignLocalInt8 : JogCmdXorAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdXorAssignLocalChar : JogCmdXorAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdXorAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdXorAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  SHLAssign Local
-//====================================================================
-struct JogCmdSHLAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdSHLAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
@@ -5836,174 +5216,18 @@ struct JogCmdSHLAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local << vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdSHLAssignLocalInt64 : JogCmdSHLAssignLocal
+template <typename DataType>
+struct JogCmdSHRXAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignLocalInt32 : JogCmdSHLAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignLocalInt16 : JogCmdSHLAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignLocalInt8 : JogCmdSHLAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHLAssignLocalChar : JogCmdSHLAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHLAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHLAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  SHRAssign Local
-//====================================================================
-struct JogCmdSHRAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdSHRAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    var_info->name->print();
-    printf(" >>>= ");
-    operand->print();
-  }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdSHRAssignLocalInt64 : JogCmdSHRAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignLocalInt32 : JogCmdSHRAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignLocalInt16 : JogCmdSHRAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignLocalInt8 : JogCmdSHRAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRAssignLocalChar : JogCmdSHRAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//====================================================================
-//  SHRXAssign Local
-//====================================================================
-struct JogCmdSHRXAssignLocal : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  JogLocalVarInfo* var_info;
-  Ref<JogCmd>      operand;
-
-  JogCmdSHRXAssignLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand ) : 
-    JogCmd(t), var_info(var_info), operand(operand)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
@@ -6012,67 +5236,33 @@ struct JogCmdSHRXAssignLocal : JogCmd
     operand->print();
   }
 
-  void on_push( JogVM* vm );
+  void execute( JogVM* vm )
+  {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    local = (DataType)(local >> vm->pop_data());
+    vm->push( local );
+  }
 };
 
-struct JogCmdSHRXAssignLocalInt64 : JogCmdSHRXAssignLocal
+template <typename DataType>
+struct JogCmdSHRAssignLocal : JogCmdOpAssignLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdSHRXAssignLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignLocal(t,var_info,operand)
+  void print()
   {
+    var_info->name->print();
+    printf(" >>>= ");
+    operand->print();
   }
 
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignLocalInt32 : JogCmdSHRXAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignLocal(t,var_info,operand)
+  void execute( JogVM* vm )
   {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    int bits = (int) vm->pop_data();
+    local = JOG_SHR( DataType, local, bits );
+    vm->push( local );
   }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignLocalInt16 : JogCmdSHRXAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignLocalInt8 : JogCmdSHRXAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdSHRXAssignLocalChar : JogCmdSHRXAssignLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdSHRXAssignLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, Ref<JogCmd> operand )
-    : JogCmdSHRXAssignLocal(t,var_info,operand)
-  {
-  }
-
-  void execute( JogVM* vm );
 };
 
 
