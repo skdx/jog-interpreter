@@ -312,7 +312,7 @@ void JogVM::run( const char* main_class_name )
     throw err;
   }
 
-//JogTypeInfo* debug_type = JogTypeInfo::find("Object");
+//JogTypeInfo* debug_type = JogTypeInfo::find("Test");
 //if (debug_type) debug_type->print_members();  //DEBUG
 
   add_native_handlers();

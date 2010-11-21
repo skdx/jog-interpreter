@@ -1639,6 +1639,10 @@ void JogCmdSHRXAssignLocalChar::execute( JogVM* vm )
   vm->push( local );
 }
 
+//=============================================================================
+//  Op-Assign Property
+//=============================================================================
+
 void JogCmdAddAssignProperty::on_push( JogVM* vm ) 
 { 
   vm->push( *operand );
@@ -1647,7 +1651,7 @@ void JogCmdAddAssignProperty::on_push( JogVM* vm )
 
 void JogCmdAddAssignPropertyString::execute( JogVM* vm )
 {
-  JogObject* st2 = vm->pop_ref().null_check(t);
+  JogRef st2 = vm->pop_ref();
   JogRef context = vm->pop_ref();
   JogObject** location = (JogObject**)&(context.null_check(t)->data[var_info->index]);
 
@@ -1656,8 +1660,14 @@ void JogCmdAddAssignPropertyString::execute( JogVM* vm )
     throw error( "Null Pointer Exception." );
   }
 
-  JogObject* array1 = *((JogObject**)&((*location)->data[var_info->index]));
-  JogObject* array2 = *((JogObject**)&(st2->data[var_info->index]));
+  if (*st2 == NULL)
+  {
+    JogChar data[] = {'n','u','l','l'};
+    st2 = vm->create_string( data, 4 );
+  }
+
+  JogObject* array1 = *((JogObject**)&((*location)->data[0]));
+  JogObject* array2 = *((JogObject**)&(st2->data[0]));
 
   int count1 = array1->count;
   int count2 = array2->count;
@@ -1671,7 +1681,7 @@ void JogCmdAddAssignPropertyString::execute( JogVM* vm )
   {
     // right-hand string is result
     (*location)->release();
-    *location = st2;
+    *location = *st2;
     st2->retain();
     vm->push( st2 );
   }
@@ -2315,10 +2325,633 @@ void JogCmdSHRXAssignPropertyChar::execute( JogVM* vm )
   vm->push( local );
 }
 
+//=============================================================================
+//  Op-Assign Class Property
+//=============================================================================
+
+void JogCmdAddAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdAddAssignClassPropertyString::execute( JogVM* vm )
+{
+  JogRef st2 = vm->pop_ref();
+  JogObject** location = (JogObject**)&(var_info->type_context->class_data[var_info->index]);
+
+  if (*location == NULL)
+  {
+    throw error( "Null Pointer Exception." );
+  }
+
+  if (st2 == NULL)
+  {
+    JogChar data[] = {'n','u','l','l'};
+    st2 = vm->create_string( data, 4 );
+  }
+
+
+  JogObject* array1 = *((JogObject**)&((*location)->data[0]));
+  JogObject* array2 = *((JogObject**)&(st2->data[0]));
+
+  int count1 = array1->count;
+  int count2 = array2->count;
+
+  if (count2 == 0)
+  {
+    // original string is result
+    vm->push( *location );
+  }
+  else if (count1 == 0)
+  {
+    // right-hand string is result
+    (*location)->release();
+    *location = *st2;
+    st2->retain();
+    vm->push( st2 );
+  }
+  else
+  {
+    JogRef new_data = vm->create_array( jog_type_manager.type_char_array, count1+count2 );
+    memcpy( new_data->data, array1->data, count1*2 );
+    memcpy( ((JogChar*) new_data->data) + count1, array2->data, count2*2 );
+    JogRef new_string = vm->create_string( new_data );
+    (*location)->release();
+    *location = *new_string;
+    new_string->retain();
+    vm->push( new_string );
+  }
+}
+
+void JogCmdAddAssignClassPropertyReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local += operand;
+  vm->push( local );
+}
+
+void JogCmdAddAssignClassPropertyReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local = (float) (local + operand);
+  vm->push( local );
+}
+
+void JogCmdAddAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local += operand;
+  vm->push( local );
+}
+
+void JogCmdAddAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local + operand);
+  vm->push( local );
+}
+
+void JogCmdAddAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local + operand);
+  vm->push( local );
+}
+
+void JogCmdAddAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local + operand);
+  vm->push( local );
+}
+
+void JogCmdAddAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local + operand);
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdSubAssignClassPropertyReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local -= operand;
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassPropertyReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local = (float) (local - operand);
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local -= operand;
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local - operand);
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local - operand);
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local - operand);
+  vm->push( local );
+}
+
+void JogCmdSubAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local - operand);
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdMulAssignClassPropertyReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local *= operand;
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassPropertyReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local = (float) (local * operand);
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local *= operand;
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local * operand);
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local * operand);
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local * operand);
+  vm->push( local );
+}
+
+void JogCmdMulAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local * operand);
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdDivAssignClassPropertyReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local /= operand;
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassPropertyReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+  double& local = ((double*)(var_info->type_context->class_data))[var_info->index];
+  local = (float) (local / operand);
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local /= operand;
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local / operand);
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local / operand);
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local / operand);
+  vm->push( local );
+}
+
+void JogCmdDivAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local / operand);
+  vm->push( local );
+}
+
+void JogCmdModAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdModAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local %= operand;
+  vm->push( local );
+}
+
+void JogCmdModAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local % operand);
+  vm->push( local );
+}
+
+void JogCmdModAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local % operand);
+  vm->push( local );
+}
+
+void JogCmdModAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local % operand);
+  vm->push( local );
+}
+
+void JogCmdModAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local % operand);
+  vm->push( local );
+}
+
+void JogCmdAndAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdAndAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local &= operand;
+  vm->push( local );
+}
+
+void JogCmdAndAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local & operand);
+  vm->push( local );
+}
+
+void JogCmdAndAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local & operand);
+  vm->push( local );
+}
+
+void JogCmdAndAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local & operand);
+  vm->push( local );
+}
+
+void JogCmdAndAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local & operand);
+  vm->push( local );
+}
+
+void JogCmdOrAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdOrAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local |= operand;
+  vm->push( local );
+}
+
+void JogCmdOrAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local | operand);
+  vm->push( local );
+}
+
+void JogCmdOrAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local | operand);
+  vm->push( local );
+}
+
+void JogCmdOrAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local | operand);
+  vm->push( local );
+}
+
+void JogCmdOrAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local | operand);
+  vm->push( local );
+}
+
+void JogCmdXorAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdXorAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local ^= operand;
+  vm->push( local );
+}
+
+void JogCmdXorAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local ^ operand);
+  vm->push( local );
+}
+
+void JogCmdXorAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local ^ operand);
+  vm->push( local );
+}
+
+void JogCmdXorAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local ^ operand);
+  vm->push( local );
+}
+
+void JogCmdXorAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local ^ operand);
+  vm->push( local );
+}
+
+void JogCmdSHLAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdSHLAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local <<= operand;
+  vm->push( local );
+}
+
+void JogCmdSHLAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local << operand);
+  vm->push( local );
+}
+
+void JogCmdSHLAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local << operand);
+  vm->push( local );
+}
+
+void JogCmdSHLAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local << operand);
+  vm->push( local );
+}
+
+void JogCmdSHLAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local >> operand);
+  vm->push( local );
+}
+
+void JogCmdSHRAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdSHRAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = JOG_SHR( JogInt64, local, bits );
+  vm->push( local );
+}
+
+void JogCmdSHRAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) JOG_SHR( JogInt32, local, bits );
+  vm->push( local );
+}
+
+void JogCmdSHRAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) JOG_SHR( JogInt32, local, bits );
+  vm->push( local );
+}
+
+void JogCmdSHRAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) JOG_SHR( JogInt32, local, bits );
+  vm->push( local );
+}
+
+void JogCmdSHRAssignClassPropertyChar::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) JOG_SHR( JogInt32, local, bits );
+  vm->push( local );
+}
+
+void JogCmdSHRXAssignClassProperty::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  if (*context) vm->push( *context );
+}
+
+void JogCmdSHRXAssignClassPropertyInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local >>= operand;
+  vm->push( local );
+}
+
+void JogCmdSHRXAssignClassPropertyInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt32) (local >> operand);
+  vm->push( local );
+}
+
+void JogCmdSHRXAssignClassPropertyInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt16) (local >> operand);
+  vm->push( local );
+}
+
+void JogCmdSHRXAssignClassPropertyInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogInt8) (local >> operand);
+  vm->push( local );
+}
+
+void JogCmdSHRXAssignClassPropertyChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+  JogInt64& local = var_info->type_context->class_data[var_info->index];
+  local = (JogChar) (local >> operand);
+  vm->push( local );
+}
+
 //====================================================================
-//  AddAssignArray
+//  OpAssignArray
 //====================================================================
-void JogCmdAddAssignArray::on_push( JogVM* vm )
+void JogCmdOpAssignArray::on_push( JogVM* vm )
 {
   vm->push( *rhs );
   vm->push( *index_expr );
@@ -2327,21 +2960,847 @@ void JogCmdAddAssignArray::on_push( JogVM* vm )
 
 void JogCmdAddAssignArrayString::execute( JogVM* vm )
 {
-throw error("TODO");
-/*
+  JogRef st2 = vm->pop_ref();
+  if (*st2 == NULL)
+  {
+    JogChar data[] = {'n','u','l','l'};
+    st2 = vm->create_string( data, 4 );
+  }
+
   int index = vm->pop_int();
   JogRef obj = vm->pop_ref();
   JogObject* array = obj.null_check(t);
   array->index_check(t,index);
-  vm->push( ((JogObject**)array->data)[index] );
 
-  JogInt64 operand = vm->pop_data();
-  JogRef   context = vm->pop_ref();
-  JogInt64& local = context.null_check(t)->data[var_info->index];
-  local = (JogChar) (local >> operand);
-  vm->push( local );
-  */
+  JogObject** location = &((JogObject**)array->data)[index];
+  JogRef st1 = *location;
+  st1.null_check(t);
+
+  JogObject* array1 = *((JogObject**)&(st1->data[0]));
+  JogObject* array2 = *((JogObject**)&(st2->data[0]));
+
+  int count1 = array1->count;
+  int count2 = array2->count;
+
+  if (count2 == 0)
+  {
+    // original string is result
+    vm->push( st1 );
+  }
+  else if (count1 == 0)
+  {
+    // right-hand string is result
+    st1->release();
+    *location = *st2;
+    st2->retain();
+    vm->push( st2 );
+  }
+  else
+  {
+    JogRef new_data = vm->create_array( jog_type_manager.type_char_array, count1+count2 );
+    memcpy( new_data->data, array1->data, count1*2 );
+    memcpy( ((JogChar*) new_data->data) + count1, array2->data, count2*2 );
+    JogRef new_string = vm->create_string( new_data );
+    st1->release();
+    *location = *new_string;
+    new_string->retain();
+    vm->push( new_string );
+  }
 }
+
+/*
+void JogCmdAddAssignArrayReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  double** location = &((JogObject**)array->data)[index];
+  *location += operand;
+  vm->push( *location );
+}
+
+void JogCmdAddAssignArrayReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (float) (*location + operand);
+  vm->push( *location );
+}
+
+void JogCmdAddAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location += operand;
+  vm->push( *location );
+}
+
+void JogCmdAddAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location + operand);
+  vm->push( *location );
+}
+
+void JogCmdAddAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location + operand);
+  vm->push( *location );
+}
+
+void JogCmdAddAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location + operand);
+  vm->push( *location );
+}
+
+void JogCmdAddAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location + operand);
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdSubAssignArrayReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location -= operand;
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArrayReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (float) (*location - operand);
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location -= operand;
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location - operand);
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location - operand);
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location - operand);
+  vm->push( *location );
+}
+
+void JogCmdSubAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location - operand);
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdMulAssignArrayReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location *= operand;
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArrayReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (float) (*location * operand);
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location *= operand;
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location * operand);
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location * operand);
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location * operand);
+  vm->push( *location );
+}
+
+void JogCmdMulAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location * operand);
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdDivAssignArrayReal64::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location /= operand;
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArrayReal32::execute( JogVM* vm )
+{
+  double operand = vm->pop_double();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (float) (*location / operand);
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location /= operand;
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location / operand);
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location / operand);
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location / operand);
+  vm->push( *location );
+}
+
+void JogCmdDivAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location / operand);
+  vm->push( *location );
+}
+
+void JogCmdModAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdModAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location %= operand;
+  vm->push( *location );
+}
+
+void JogCmdModAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location % operand);
+  vm->push( *location );
+}
+
+void JogCmdModAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location % operand);
+  vm->push( *location );
+}
+
+void JogCmdModAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location % operand);
+  vm->push( *location );
+}
+
+void JogCmdModAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = zero_check(vm->pop_data());
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location % operand);
+  vm->push( *location );
+}
+
+void JogCmdAndAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdAndAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location &= operand;
+  vm->push( *location );
+}
+
+void JogCmdAndAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location & operand);
+  vm->push( *location );
+}
+
+void JogCmdAndAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location & operand);
+  vm->push( *location );
+}
+
+void JogCmdAndAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location & operand);
+  vm->push( *location );
+}
+
+void JogCmdAndAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location & operand);
+  vm->push( *location );
+}
+
+void JogCmdOrAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdOrAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location |= operand;
+  vm->push( *location );
+}
+
+void JogCmdOrAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location | operand);
+  vm->push( *location );
+}
+
+void JogCmdOrAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location | operand);
+  vm->push( *location );
+}
+
+void JogCmdOrAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location | operand);
+  vm->push( *location );
+}
+
+void JogCmdOrAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location | operand);
+  vm->push( *location );
+}
+
+void JogCmdXorAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdXorAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location ^= operand;
+  vm->push( *location );
+}
+
+void JogCmdXorAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location ^ operand);
+  vm->push( *location );
+}
+
+void JogCmdXorAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location ^ operand);
+  vm->push( *location );
+}
+
+void JogCmdXorAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location ^ operand);
+  vm->push( *location );
+}
+
+void JogCmdXorAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location ^ operand);
+  vm->push( *location );
+}
+
+void JogCmdSHLAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdSHLAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location <<= operand;
+  vm->push( *location );
+}
+
+void JogCmdSHLAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location << operand);
+  vm->push( *location );
+}
+
+void JogCmdSHLAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location << operand);
+  vm->push( *location );
+}
+
+void JogCmdSHLAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location << operand);
+  vm->push( *location );
+}
+
+void JogCmdSHLAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location >> operand);
+  vm->push( *location );
+}
+
+void JogCmdSHRAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdSHRAssignArrayInt64::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  *location = JOG_SHR( JogInt64, *location, bits );
+  vm->push( *location );
+}
+
+void JogCmdSHRAssignArrayInt32::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  *location = (JogInt32) JOG_SHR( JogInt32, *location, bits );
+  vm->push( *location );
+}
+
+void JogCmdSHRAssignArrayInt16::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  *location = (JogInt16) JOG_SHR( JogInt32, *location, bits );
+  vm->push( *location );
+}
+
+void JogCmdSHRAssignArrayInt8::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  *location = (JogInt8) JOG_SHR( JogInt32, *location, bits );
+  vm->push( *location );
+}
+
+void JogCmdSHRAssignArrayChar::execute( JogVM* vm )
+{
+  int bits = (int) vm->pop_data();
+  *location = (JogChar) JOG_SHR( JogInt32, *location, bits );
+  vm->push( *location );
+}
+
+void JogCmdSHRXAssignArray::on_push( JogVM* vm ) 
+{ 
+  vm->push( *operand );
+  vm->push( *context );
+}
+
+void JogCmdSHRXAssignArrayInt64::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location >>= operand;
+  vm->push( *location );
+}
+
+void JogCmdSHRXAssignArrayInt32::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt32) (*location >> operand);
+  vm->push( *location );
+}
+
+void JogCmdSHRXAssignArrayInt16::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt16) (*location >> operand);
+  vm->push( *location );
+}
+
+void JogCmdSHRXAssignArrayInt8::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogInt8) (*location >> operand);
+  vm->push( *location );
+}
+
+void JogCmdSHRXAssignArrayChar::execute( JogVM* vm )
+{
+  JogInt64 operand = vm->pop_data();
+
+  int index = vm->pop_int();
+  JogObject* array = vm->pop_ref().null_check(t);
+  array->index_check(t,index);
+
+  *location = (JogChar) (*location >> operand);
+  vm->push( *location );
+}
+*/
 
 //--------------------------------------------------------------------
 

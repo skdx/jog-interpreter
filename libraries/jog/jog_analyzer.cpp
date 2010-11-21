@@ -1165,7 +1165,11 @@ Ref<JogCmd> JogCmdAdd::resolve()
     {
       if (rhs_type->is_reference())
       {
-        if ( !rhs_type->instance_of(jog_type_manager.type_string) )
+        if (rhs_type == jog_type_manager.type_null)
+        {
+          rhs = new JogCmdLiteralString( t, new JogString("null") );
+        }
+        else if ( !rhs_type->instance_of(jog_type_manager.type_string) )
         {
           rhs = new JogCmdMemberAccess( t,
               rhs,
@@ -2822,7 +2826,6 @@ Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, Ref<JogCmd> contex
               new JogString("toString"), *args, false );
           rhs = (new JogCmdClassCall( t, m, NULL, args ))->resolve();
         }
-printf("BING!\n");
         return new JogCmdAddAssignPropertyString( t, context, var_info, rhs );
       }
 
@@ -3043,7 +3046,6 @@ printf("BING!\n");
           case TOKEN_OR_ASSIGN:
             return new JogCmdOrAssignPropertyInt64( t, context, var_info, rhs );
           case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyInt64( t, context, var_info, rhs );
           case TOKEN_SHL_ASSIGN:
           case TOKEN_SHR_ASSIGN:
           case TOKEN_SHRX_ASSIGN:
@@ -3062,538 +3064,256 @@ printf("BING!\n");
 Ref<JogCmd> JogCmdIdentifier::resolve_op_assign( int op_type, JogTypeInfo* class_context,
     Ref<JogCmd> context, Ref<JogCmd> rhs )
 {
-  /*
+  JogPropertyInfo* var_info = class_context->class_properties_by_name[name];
+
+  if (var_info)
   {
-    JogPropertyInfo* var_info = class_context->class_properties_by_name[name];
+    rhs = rhs->resolve();
 
-    if (var_info)
+    if (op_type == TOKEN_ADD_ASSIGN && var_info->type->is_reference())
     {
-      rhs = rhs->resolve();
-
-      if (op_type == TOKEN_ADD_ASSIGN && var_info->type->is_reference())
+      if ( !var_info->type->instance_of(jog_type_manager.type_string) )
       {
-        if ( !var_info->type->instance_of(jog_type_manager.type_string) )
-        {
-          throw error( "'+=' can only be used with numerical and String values." );
-        }
-
-        JogTypeInfo* rhs_type = rhs->require_value();
-        if (rhs_type->is_primitive())
-        {
-          Ref<JogCmdList> args = new JogCmdList(t);
-          args->add(rhs);
-          JogMethodInfo* m = resolve_call( t, rhs_type->wrapper_type(), 
-              new JogString("toString"), *args, false );
-          rhs = (new JogCmdClassCall( t, m, NULL, args ))->resolve();
-        }
+        throw error( "'+=' can only be used with numerical and String values." );
       }
 
-      rhs = rhs->cast_to_type( var_info->type )->resolve();
-
-      if (op_type == TOKEN_ADD_ASSIGN && var_info->type->is_reference())
+      JogTypeInfo* rhs_type = rhs->require_value();
+      if (rhs_type->is_primitive())
       {
-        // We've already established this as a String.
         Ref<JogCmdList> args = new JogCmdList(t);
         args->add(rhs);
+        JogMethodInfo* m = resolve_call( t, rhs_type->wrapper_type(), 
+            new JogString("toString"), *args, false );
+        rhs = (new JogCmdClassCall( t, m, NULL, args ))->resolve();
+      }
+      return new JogCmdAddAssignClassPropertyString( t, context, var_info, rhs );
+    }
 
-        Ref<JogCmd> result = new JogCmdAssign( t,
-            this,
-            new JogCmdMemberAccess( t,
-              new JogCmdIdentifier(t,name),
-              new JogCmdMethodCall(t,new JogString("concat"),args)
-            )
-          );
-        return result->resolve();
-      }
+    rhs = rhs->cast_to_type( var_info->type )->resolve();
 
-      if (var_info->type == jog_type_manager.type_real64)
+    if (var_info->type == jog_type_manager.type_real64)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalReal64( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalReal64( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalReal64( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalReal64( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            throw error( "Modulo can only be used on integer values." );
-          case TOKEN_AND_ASSIGN:
-            throw error( "Bitwise And can only be used on integer and boolean values." );
-          case TOKEN_OR_ASSIGN:
-            throw error( "Bitwise Or can only be used on integer and boolean values." );
-          case TOKEN_XOR_ASSIGN:
-            throw error( "Bitwise Xor can only be used on integer and boolean values." );
-          case TOKEN_SHL_ASSIGN:
-            throw error( "Left Shift can only be used on integer values." );
-          case TOKEN_SHR_ASSIGN:
-            throw error( "Right Shift can only be used on integer values." );
-          case TOKEN_SHRX_ASSIGN:
-            throw error( "Right Shift with Sign Extend can only be used on integer values." );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyReal64( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyReal64( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyReal64( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyReal64( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          throw error( "Modulo can only be used on integer values." );
+        case TOKEN_AND_ASSIGN:
+          throw error( "Bitwise And can only be used on integer and boolean values." );
+        case TOKEN_OR_ASSIGN:
+          throw error( "Bitwise Or can only be used on integer and boolean values." );
+        case TOKEN_XOR_ASSIGN:
+          throw error( "Bitwise Xor can only be used on integer and boolean values." );
+        case TOKEN_SHL_ASSIGN:
+          throw error( "Left Shift can only be used on integer values." );
+        case TOKEN_SHR_ASSIGN:
+          throw error( "Right Shift can only be used on integer values." );
+        case TOKEN_SHRX_ASSIGN:
+          throw error( "Right Shift with Sign Extend can only be used on integer values." );
       }
-      else if (var_info->type == jog_type_manager.type_real32)
+    }
+    else if (var_info->type == jog_type_manager.type_real32)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalReal32( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalReal32( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalReal32( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalReal32( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            throw error( "Modulo can only be used on integer values." );
-          case TOKEN_AND_ASSIGN:
-            throw error( "Bitwise And can only be used on integer and boolean values." );
-          case TOKEN_OR_ASSIGN:
-            throw error( "Bitwise Or can only be used on integer and boolean values." );
-          case TOKEN_XOR_ASSIGN:
-            throw error( "Bitwise Xor can only be used on integer and boolean values." );
-          case TOKEN_SHL_ASSIGN:
-            throw error( "Left Shift can only be used on integer values." );
-          case TOKEN_SHR_ASSIGN:
-            throw error( "Right Shift can only be used on integer values." );
-          case TOKEN_SHRX_ASSIGN:
-            throw error( "Right Shift with Sign Extend can only be used on integer values." );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyReal32( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyReal32( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyReal32( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyReal32( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          throw error( "Modulo can only be used on integer values." );
+        case TOKEN_AND_ASSIGN:
+          throw error( "Bitwise And can only be used on integer and boolean values." );
+        case TOKEN_OR_ASSIGN:
+          throw error( "Bitwise Or can only be used on integer and boolean values." );
+        case TOKEN_XOR_ASSIGN:
+          throw error( "Bitwise Xor can only be used on integer and boolean values." );
+        case TOKEN_SHL_ASSIGN:
+          throw error( "Left Shift can only be used on integer values." );
+        case TOKEN_SHR_ASSIGN:
+          throw error( "Right Shift can only be used on integer values." );
+        case TOKEN_SHRX_ASSIGN:
+          throw error( "Right Shift with Sign Extend can only be used on integer values." );
       }
-      else if (var_info->type == jog_type_manager.type_int64)
+    }
+    else if (var_info->type == jog_type_manager.type_int64)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt64( t, var_info, rhs );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          return new JogCmdModAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_AND_ASSIGN:
+          return new JogCmdAndAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_OR_ASSIGN:
+          return new JogCmdOrAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_XOR_ASSIGN:
+          return new JogCmdXorAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_SHL_ASSIGN:
+          return new JogCmdSHLAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_SHR_ASSIGN:
+          return new JogCmdSHRAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_SHRX_ASSIGN:
+          return new JogCmdSHRXAssignClassPropertyInt64( t, context, var_info, rhs );
       }
-      else if (var_info->type == jog_type_manager.type_int32)
+    }
+    else if (var_info->type == jog_type_manager.type_int32)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt32( t, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt32( t, var_info, rhs );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          return new JogCmdModAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_AND_ASSIGN:
+          return new JogCmdAndAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_OR_ASSIGN:
+          return new JogCmdOrAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_XOR_ASSIGN:
+          return new JogCmdXorAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_SHL_ASSIGN:
+          return new JogCmdSHLAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_SHR_ASSIGN:
+          return new JogCmdSHRAssignClassPropertyInt32( t, context, var_info, rhs );
+        case TOKEN_SHRX_ASSIGN:
+          return new JogCmdSHRXAssignClassPropertyInt32( t, context, var_info, rhs );
       }
-      else if (var_info->type == jog_type_manager.type_int16)
+    }
+    else if (var_info->type == jog_type_manager.type_int16)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt16( t, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt16( t, var_info, rhs );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          return new JogCmdModAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_AND_ASSIGN:
+          return new JogCmdAndAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_OR_ASSIGN:
+          return new JogCmdOrAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_XOR_ASSIGN:
+          return new JogCmdXorAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_SHL_ASSIGN:
+          return new JogCmdSHLAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_SHR_ASSIGN:
+          return new JogCmdSHRAssignClassPropertyInt16( t, context, var_info, rhs );
+        case TOKEN_SHRX_ASSIGN:
+          return new JogCmdSHRXAssignClassPropertyInt16( t, context, var_info, rhs );
       }
-      else if (var_info->type == jog_type_manager.type_int8)
+    }
+    else if (var_info->type == jog_type_manager.type_int8)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalInt8( t, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalInt8( t, var_info, rhs );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          return new JogCmdModAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_AND_ASSIGN:
+          return new JogCmdAndAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_OR_ASSIGN:
+          return new JogCmdOrAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_XOR_ASSIGN:
+          return new JogCmdXorAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_SHL_ASSIGN:
+          return new JogCmdSHLAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_SHR_ASSIGN:
+          return new JogCmdSHRAssignClassPropertyInt8( t, context, var_info, rhs );
+        case TOKEN_SHRX_ASSIGN:
+          return new JogCmdSHRXAssignClassPropertyInt8( t, context, var_info, rhs );
       }
-      else if (var_info->type == jog_type_manager.type_char)
+    }
+    else if (var_info->type == jog_type_manager.type_char)
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignLocalChar( t, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignLocalChar( t, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignLocalChar( t, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignLocalChar( t, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignLocalChar( t, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalChar( t, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalChar( t, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalChar( t, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignLocalChar( t, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignLocalChar( t, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignLocalChar( t, var_info, rhs );
-        }
+        case TOKEN_ADD_ASSIGN:
+          return new JogCmdAddAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_SUB_ASSIGN:
+          return new JogCmdSubAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_MUL_ASSIGN:
+          return new JogCmdMulAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_DIV_ASSIGN:
+          return new JogCmdDivAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_MOD_ASSIGN:
+          return new JogCmdModAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_AND_ASSIGN:
+          return new JogCmdAndAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_OR_ASSIGN:
+          return new JogCmdOrAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_XOR_ASSIGN:
+          return new JogCmdXorAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_SHL_ASSIGN:
+          return new JogCmdSHLAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_SHR_ASSIGN:
+          return new JogCmdSHRAssignClassPropertyChar( t, context, var_info, rhs );
+        case TOKEN_SHRX_ASSIGN:
+          return new JogCmdSHRXAssignClassPropertyChar( t, context, var_info, rhs );
       }
-      else
+    }
+    else
+    {
+      switch (op_type)
       {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            throw error( "Boolean values cannot be added." );
-          case TOKEN_SUB_ASSIGN:
-            throw error( "Boolean values cannot be subtracted." );
-          case TOKEN_MUL_ASSIGN:
-            throw error( "Boolean values cannot be multiplied." );
-          case TOKEN_DIV_ASSIGN:
-            throw error( "Boolean values cannot be divided." );
-          case TOKEN_MOD_ASSIGN:
-            throw error( "Modulo can only be used on integer values." );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignLocalInt64( t, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-          case TOKEN_SHR_ASSIGN:
-          case TOKEN_SHRX_ASSIGN:
-            throw error( "Boolean values cannot be bit-shifted." );
-        }
+        case TOKEN_ADD_ASSIGN:
+          throw error( "Boolean values cannot be added." );
+        case TOKEN_SUB_ASSIGN:
+          throw error( "Boolean values cannot be subtracted." );
+        case TOKEN_MUL_ASSIGN:
+          throw error( "Boolean values cannot be multiplied." );
+        case TOKEN_DIV_ASSIGN:
+          throw error( "Boolean values cannot be divided." );
+        case TOKEN_MOD_ASSIGN:
+          throw error( "Modulo can only be used on integer values." );
+        case TOKEN_AND_ASSIGN:
+          return new JogCmdAndAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_OR_ASSIGN:
+          return new JogCmdOrAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_XOR_ASSIGN:
+          return new JogCmdXorAssignClassPropertyInt64( t, context, var_info, rhs );
+        case TOKEN_SHL_ASSIGN:
+        case TOKEN_SHR_ASSIGN:
+        case TOKEN_SHRX_ASSIGN:
+          throw error( "Boolean values cannot be bit-shifted." );
       }
     }
   }
-
-  {
-    if (*context == NULL) 
-    {
-      JogPropertyInfo* var_info = jog_context->this_type->class_properties_by_name[name];
-      if (var_info) return resolve_op_assign( op_type, jog_context->this_type, NULL, new_value );
-      context = new JogCmdThis( t, jog_context->this_type );
-    }
-    JogPropertyInfo* var_info = context->type()->properties_by_name[name];
-
-    if (var_info)
-    {
-      rhs = rhs->resolve();
-
-      if (op_type == TOKEN_ADD_ASSIGN && var_info->type->is_reference())
-      {
-        if ( !var_info->type->instance_of(jog_type_manager.type_string) )
-        {
-          throw error( "'+=' can only be used with numerical and String values." );
-        }
-
-        JogTypeInfo* rhs_type = rhs->require_value();
-        if (rhs_type->is_primitive())
-        {
-          Ref<JogCmdList> args = new JogCmdList(t);
-          args->add(rhs);
-          JogMethodInfo* m = resolve_call( t, rhs_type->wrapper_type(), 
-              new JogString("toString"), *args, false );
-          rhs = (new JogCmdClassCall( t, m, NULL, args ))->resolve();
-        }
-printf("BING!\n");
-        return new JogCmdAddAssignPropertyString( t, context, var_info, rhs );
-      }
-
-      rhs = rhs->cast_to_type( var_info->type )->resolve();
-
-      if (var_info->type == jog_type_manager.type_real64)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyReal64( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyReal64( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyReal64( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyReal64( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            throw error( "Modulo can only be used on integer values." );
-          case TOKEN_AND_ASSIGN:
-            throw error( "Bitwise And can only be used on integer and boolean values." );
-          case TOKEN_OR_ASSIGN:
-            throw error( "Bitwise Or can only be used on integer and boolean values." );
-          case TOKEN_XOR_ASSIGN:
-            throw error( "Bitwise Xor can only be used on integer and boolean values." );
-          case TOKEN_SHL_ASSIGN:
-            throw error( "Left Shift can only be used on integer values." );
-          case TOKEN_SHR_ASSIGN:
-            throw error( "Right Shift can only be used on integer values." );
-          case TOKEN_SHRX_ASSIGN:
-            throw error( "Right Shift with Sign Extend can only be used on integer values." );
-        }
-      }
-      else if (var_info->type == jog_type_manager.type_real32)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyReal32( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyReal32( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyReal32( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyReal32( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            throw error( "Modulo can only be used on integer values." );
-          case TOKEN_AND_ASSIGN:
-            throw error( "Bitwise And can only be used on integer and boolean values." );
-          case TOKEN_OR_ASSIGN:
-            throw error( "Bitwise Or can only be used on integer and boolean values." );
-          case TOKEN_XOR_ASSIGN:
-            throw error( "Bitwise Xor can only be used on integer and boolean values." );
-          case TOKEN_SHL_ASSIGN:
-            throw error( "Left Shift can only be used on integer values." );
-          case TOKEN_SHR_ASSIGN:
-            throw error( "Right Shift can only be used on integer values." );
-          case TOKEN_SHRX_ASSIGN:
-            throw error( "Right Shift with Sign Extend can only be used on integer values." );
-        }
-      }
-      else if (var_info->type == jog_type_manager.type_int64)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignPropertyInt64( t, context, var_info, rhs );
-        }
-      }
-      else if (var_info->type == jog_type_manager.type_int32)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignPropertyInt32( t, context, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignPropertyInt32( t, context, var_info, rhs );
-        }
-      }
-      else if (var_info->type == jog_type_manager.type_int16)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignPropertyInt16( t, context, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignPropertyInt16( t, context, var_info, rhs );
-        }
-      }
-      else if (var_info->type == jog_type_manager.type_int8)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignPropertyInt8( t, context, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignPropertyInt8( t, context, var_info, rhs );
-        }
-      }
-      else if (var_info->type == jog_type_manager.type_char)
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            return new JogCmdAddAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_SUB_ASSIGN:
-            return new JogCmdSubAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_MUL_ASSIGN:
-            return new JogCmdMulAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_DIV_ASSIGN:
-            return new JogCmdDivAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_MOD_ASSIGN:
-            return new JogCmdModAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-            return new JogCmdSHLAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_SHR_ASSIGN:
-            return new JogCmdSHRAssignPropertyChar( t, context, var_info, rhs );
-          case TOKEN_SHRX_ASSIGN:
-            return new JogCmdSHRXAssignPropertyChar( t, context, var_info, rhs );
-        }
-      }
-      else
-      {
-        switch (op_type)
-        {
-          case TOKEN_ADD_ASSIGN:
-            throw error( "Boolean values cannot be added." );
-          case TOKEN_SUB_ASSIGN:
-            throw error( "Boolean values cannot be subtracted." );
-          case TOKEN_MUL_ASSIGN:
-            throw error( "Boolean values cannot be multiplied." );
-          case TOKEN_DIV_ASSIGN:
-            throw error( "Boolean values cannot be divided." );
-          case TOKEN_MOD_ASSIGN:
-            throw error( "Modulo can only be used on integer values." );
-          case TOKEN_AND_ASSIGN:
-            return new JogCmdAndAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_OR_ASSIGN:
-            return new JogCmdOrAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_XOR_ASSIGN:
-            return new JogCmdXorAssignPropertyInt64( t, context, var_info, rhs );
-          case TOKEN_SHL_ASSIGN:
-          case TOKEN_SHR_ASSIGN:
-          case TOKEN_SHRX_ASSIGN:
-            throw error( "Boolean values cannot be bit-shifted." );
-        }
-      }
-    }
-
-    var_info = context_type->class_properties_by_name[name];
-    if (var_info) return resolve_op_assign( op_type, context_type, context, new_value );
-  }
-  */
 
   return JogCmd::resolve_op_assign(op_type,class_context,context,rhs);
 }
@@ -4259,6 +3979,23 @@ Ref<JogCmd> JogCmdMemberAccess::resolve_assignment( Ref<JogCmd> assignment_conte
   return member->resolve_assignment( context->resolve(), new_value );
 }
 
+Ref<JogCmd> JogCmdMemberAccess::resolve_op_assign( int op_type, 
+    Ref<JogCmd> assignment_context, Ref<JogCmd> rhs )
+{
+  if (*assignment_context != NULL)
+  {
+    throw error( "[Internal] JogCmdMemberAccess::resolve_assignment( !NULL, ... )" );
+  }
+  JogTypeInfo* class_context = context->as_type();
+  if (class_context) 
+  {
+    class_context->resolve();
+    return member->resolve_op_assign( op_type, class_context, context, rhs );
+  }
+
+  return member->resolve_op_assign( op_type, context->resolve(), rhs );
+}
+
 Ref<JogCmd> JogCmdMemberAccess::resolve_stepcount_access( int when, int modifier )
 {
   JogTypeInfo* class_context = context->as_type();
@@ -4422,7 +4159,11 @@ Ref<JogCmd> JogCmdArrayAccess::resolve_op_assign( int op_type, Ref<JogCmd> assig
   {
     if (rhs_type->is_reference())
     {
-      if ( rhs_type != jog_type_manager.type_string )
+      if (rhs_type == jog_type_manager.type_null)
+      {
+        rhs = new JogCmdLiteralString( t, new JogString("null") );
+      }
+      else if ( rhs_type != jog_type_manager.type_string )
       {
         rhs = (new JogCmdMemberAccess( t,
             rhs,
