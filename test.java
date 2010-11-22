@@ -22,18 +22,10 @@ class Test
 
   Test()
   {
-    // TODO: convert local post-increment to use template classes
-    // TODO: convert object, class, & array pre/post increment/decrement to template classes
-    int n = 5;
-    println( n++ );
-    println( n );
-
     char[] data = {'a','b','c'};
-    for (int i=0; i<data.length; ++i) data[i] += 2;
-    println( new String(data) );
-    println( data[0] );
+    println( data[1]++ );
     println( data[1] );
-    println( data[2] );
+    println( new String(data) );
   }
 }
 

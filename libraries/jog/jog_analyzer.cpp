@@ -3432,31 +3432,31 @@ Ref<JogCmd> JogCmdIdentifier::resolve_stepcount_access( int when, int modifier,
     {
       if (var_info->type == jog_type_manager.type_real64)
       {
-        return new JogCmdPreStepClassPropertyReal64( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyReal<double>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_real32)
       {
-        return new JogCmdPreStepClassPropertyReal32( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyReal<float>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int64)
       {
-        return new JogCmdPreStepClassPropertyInt64( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyInteger<JogInt64>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int32)
       {
-        return new JogCmdPreStepClassPropertyInt32( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyInteger<JogInt32>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int16)
       {
-        return new JogCmdPreStepClassPropertyInt16( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyInteger<JogInt16>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int8)
       {
-        return new JogCmdPreStepClassPropertyInt8( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyInteger<JogInt8>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_char)
       {
-        return new JogCmdPreStepClassPropertyChar( t, context, var_info, modifier );
+        return (new JogCmdPreStepClassPropertyInteger<JogChar>())->init( t, context, var_info, modifier );
       }
       else
       {
@@ -3467,31 +3467,31 @@ Ref<JogCmd> JogCmdIdentifier::resolve_stepcount_access( int when, int modifier,
     {
       if (var_info->type == jog_type_manager.type_real64)
       {
-        return new JogCmdPostStepClassPropertyReal64( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyReal<double>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_real32)
       {
-        return new JogCmdPostStepClassPropertyReal32( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyReal<float>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int64)
       {
-        return new JogCmdPostStepClassPropertyInt64( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyInteger<JogInt64>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int32)
       {
-        return new JogCmdPostStepClassPropertyInt32( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyInteger<JogInt32>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int16)
       {
-        return new JogCmdPostStepClassPropertyInt16( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyInteger<JogInt16>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int8)
       {
-        return new JogCmdPostStepClassPropertyInt8( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyInteger<JogInt8>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_char)
       {
-        return new JogCmdPostStepClassPropertyChar( t, context, var_info, modifier );
+        return (new JogCmdPostStepClassPropertyInteger<JogChar>())->init( t, context, var_info, modifier );
       }
       else
       {
@@ -3522,31 +3522,31 @@ Ref<JogCmd> JogCmdIdentifier::resolve_stepcount_access( int when, int modifier,
     {
       if (var_info->type == jog_type_manager.type_real64)
       {
-        return new JogCmdPreStepPropertyReal64( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyReal<double>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_real32)
       {
-        return new JogCmdPreStepPropertyReal32( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyReal<float>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int64)
       {
-        return new JogCmdPreStepPropertyInt64( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyInteger<JogInt64>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int32)
       {
-        return new JogCmdPreStepPropertyInt32( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyInteger<JogInt32>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int16)
       {
-        return new JogCmdPreStepPropertyInt16( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyInteger<JogInt16>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int8)
       {
-        return new JogCmdPreStepPropertyInt8( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyInteger<JogInt8>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_char)
       {
-        return new JogCmdPreStepPropertyChar( t, context, var_info, modifier );
+        return (new JogCmdPreStepPropertyInteger<JogChar>())->init( t, context, var_info, modifier );
       }
       else
       {
@@ -3557,31 +3557,36 @@ Ref<JogCmd> JogCmdIdentifier::resolve_stepcount_access( int when, int modifier,
     {
       if (var_info->type == jog_type_manager.type_real64)
       {
-        return new JogCmdPostStepPropertyReal64( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyReal<double>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_real32)
       {
-        return new JogCmdPostStepPropertyReal32( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyReal<float>())->init( t, context, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int64)
       {
-        return new JogCmdPostStepPropertyInt64( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyInteger<JogInt64>())->init( t, context, var_info, 
+            modifier );
       }
       else if (var_info->type == jog_type_manager.type_int32)
       {
-        return new JogCmdPostStepPropertyInt32( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyInteger<JogInt16>())->init( t, context, var_info, 
+            modifier );
       }
       else if (var_info->type == jog_type_manager.type_int16)
       {
-        return new JogCmdPostStepPropertyInt16( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyInteger<JogInt32>())->init( t, context, var_info, 
+            modifier );
       }
       else if (var_info->type == jog_type_manager.type_int8)
       {
-        return new JogCmdPostStepPropertyInt8( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyInteger<JogInt8>())->init( t, context, var_info, 
+            modifier );
       }
       else if (var_info->type == jog_type_manager.type_char)
       {
-        return new JogCmdPostStepPropertyChar( t, context, var_info, modifier );
+        return (new JogCmdPostStepPropertyInteger<JogChar>())->init( t, context, var_info, 
+            modifier );
       }
       else
       {
@@ -4447,7 +4452,98 @@ Ref<JogCmd> JogCmdArrayAccess::resolve_op_assign( int op_type, Ref<JogCmd> assig
 
 Ref<JogCmd> JogCmdArrayAccess::resolve_stepcount_access( int when, int modifier )
 {
-  throw error( "TODO: resolve [] stepcount" );
+  context = context->resolve();
+  JogTypeInfo* context_type = context->require_value();
+  if ( !context_type->is_array() )
+  {
+    throw context->error( "Array reference expected." );
+  }
+
+  index_expr = index_expr->resolve();
+  index_expr->require_integer();
+  index_expr = (index_expr->cast_to_type(jog_type_manager.type_int32))->resolve();
+
+  JogTypeInfo* element_type = context_type->element_type;
+
+  if (element_type->is_reference())
+  {
+    throw error( "++/-- cannot be used on references." );
+  }
+  else if (when == 0)
+  {
+    if (element_type == jog_type_manager.type_real64)
+    {
+      return (new JogCmdPreStepArrayReal<double>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_real32)
+    {
+      return (new JogCmdPreStepArrayReal<float>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_int64)
+    {
+      return (new JogCmdPreStepArrayInteger<JogInt64>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_int32)
+    {
+      return (new JogCmdPreStepArrayInteger<JogInt32>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_int16)
+    {
+      return (new JogCmdPreStepArrayInteger<JogInt16>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_int8)
+    {
+      return (new JogCmdPreStepArrayInteger<JogInt8>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_char)
+    {
+      return (new JogCmdPreStepArrayInteger<JogChar>())->init( t, context, index_expr, modifier );
+    }
+    else
+    {
+      throw error( "++/-- cannot be used with boolean variables." );
+    }
+  }
+  else
+  {
+    if (element_type == jog_type_manager.type_real64)
+    {
+      return (new JogCmdPostStepArrayReal<double>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_real32)
+    {
+      return (new JogCmdPostStepArrayReal<float>())->init( t, context, index_expr, modifier );
+    }
+    else if (element_type == jog_type_manager.type_int64)
+    {
+      return (new JogCmdPostStepArrayInteger<JogInt64>())->init( t, context, index_expr, 
+          modifier );
+    }
+    else if (element_type == jog_type_manager.type_int32)
+    {
+      return (new JogCmdPostStepArrayInteger<JogInt16>())->init( t, context, index_expr, 
+          modifier );
+    }
+    else if (element_type == jog_type_manager.type_int16)
+    {
+      return (new JogCmdPostStepArrayInteger<JogInt32>())->init( t, context, index_expr, 
+          modifier );
+    }
+    else if (element_type == jog_type_manager.type_int8)
+    {
+      return (new JogCmdPostStepArrayInteger<JogInt8>())->init( t, context, index_expr, 
+          modifier );
+    }
+    else if (element_type == jog_type_manager.type_char)
+    {
+      return (new JogCmdPostStepArrayInteger<JogChar>())->init( t, context, index_expr, 
+          modifier );
+    }
+    else
+    {
+      throw error( "++/-- cannot be used with boolean variables." );
+    }
+  }
 }
 
 

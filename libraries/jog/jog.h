@@ -6855,7 +6855,137 @@ struct JogCmdPostStepLocalInteger : JogCmdPostStepLocal
   }
 };
 
+//--------------------------------------------------------------------
 
+struct JogCmdPreStepProperty : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  Ref<JogCmd>      context;
+  JogPropertyInfo* var_info;
+  int              modifier;
+
+  JogCmdPreStepProperty() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info,
+      int modifier )
+  {
+    this->t = t;
+    this->context  = context;
+    this->var_info = var_info;
+    this->modifier = modifier;
+    return this;
+  }
+
+  JogTypeInfo* type() { return var_info->type; }
+
+  void print()
+  {
+    if (modifier > 0) printf("++");
+    else              printf("--");
+    var_info->name->print();
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm )
+  { 
+    vm->push( *context );
+  }
+};
+
+template <typename DataType>
+struct JogCmdPreStepPropertyReal : JogCmdPreStepProperty
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    JogObject* context = vm->pop_ref().null_check(t);
+    double& v = ((double*)context->data)[var_info->index];
+    v = (DataType) (v + modifier);
+    vm->push( v );
+  }
+};
+
+template <typename DataType>
+struct JogCmdPreStepPropertyInteger : JogCmdPreStepProperty
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    JogObject* context = vm->pop_ref().null_check(t);
+    JogInt64& v = ((JogInt64*)context->data)[var_info->index];
+    v = (DataType) (v + modifier);
+    vm->push( v );
+  }
+};
+
+struct JogCmdPostStepProperty : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  Ref<JogCmd>      context;
+  JogPropertyInfo* var_info;
+  int              modifier;
+
+  JogCmdPostStepProperty() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info,
+      int modifier )
+  {
+    this->t = t;
+    this->context  = context;
+    this->var_info = var_info;
+    this->modifier = modifier;
+    return this;
+  }
+
+  JogTypeInfo* type() { return var_info->type; }
+
+  void print()
+  {
+    var_info->name->print();
+    if (modifier > 0) printf("++");
+    else              printf("--");
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm )
+  { 
+    vm->push( *context );
+  }
+};
+
+template <typename DataType>
+struct JogCmdPostStepPropertyReal : JogCmdPostStepProperty
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    JogObject* context = vm->pop_ref().null_check(t);
+    double& v = ((double*)context->data)[var_info->index];
+    vm->push( v );
+    v = (DataType) (v + modifier);
+  }
+};
+
+template <typename DataType>
+struct JogCmdPostStepPropertyInteger : JogCmdPostStepProperty
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    JogObject* context = vm->pop_ref().null_check(t);
+    JogInt64& v = ((JogInt64*)context->data)[var_info->index];
+    vm->push( v );
+    v = (DataType) (v + modifier);
+  }
+};
 
 //--------------------------------------------------------------------
 
@@ -6867,22 +6997,23 @@ struct JogCmdPreStepClassProperty : JogCmd
   JogPropertyInfo* var_info;
   int              modifier;
 
-  JogCmdPreStepClassProperty( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmd(t), context(context), var_info(var_info), modifier(modifier)
+  JogCmdPreStepClassProperty() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info,
+      int modifier )
   {
-    if (*context) this->context = context->discarding_result();
+    this->t = t;
+    this->context  = context;
+    this->var_info = var_info;
+    this->modifier = modifier;
+    if (*context) context = context->discarding_result();
+    return this;
   }
 
   JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    if (*context)
-    {
-      context->print();
-      printf(".");
-    }
     if (modifier > 0) printf("++");
     else              printf("--");
     var_info->name->print();
@@ -6890,101 +7021,37 @@ struct JogCmdPreStepClassProperty : JogCmd
 
   Ref<JogCmd> resolve() { return this; }
 
-  void on_push( JogVM* vm );
+  void on_push( JogVM* vm )
+  { 
+    if (*context) vm->push( *context );
+  }
 };
 
-struct JogCmdPreStepClassPropertyReal64 : JogCmdPreStepClassProperty
+template <typename DataType>
+struct JogCmdPreStepClassPropertyReal : JogCmdPreStepClassProperty
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPreStepClassPropertyReal64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    double& v = ((double*)var_info->type_context->class_data)[var_info->index];
+    v = (DataType) (v + modifier);
+    vm->push( v );
   }
-
-  void execute( JogVM* vm );
 };
 
-struct JogCmdPreStepClassPropertyReal32 : JogCmdPreStepClassProperty
+template <typename DataType>
+struct JogCmdPreStepClassPropertyInteger : JogCmdPreStepClassProperty
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPreStepClassPropertyReal32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    JogInt64& v = var_info->type_context->class_data[var_info->index];
+    v = (DataType) (v + modifier);
+    vm->push( v );
   }
-
-  void execute( JogVM* vm );
 };
-
-struct JogCmdPreStepClassPropertyInt64 : JogCmdPreStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepClassPropertyInt64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepClassPropertyInt32 : JogCmdPreStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepClassPropertyInt32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepClassPropertyInt16 : JogCmdPreStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepClassPropertyInt16( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepClassPropertyInt8 : JogCmdPreStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepClassPropertyInt8( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepClassPropertyChar : JogCmdPreStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepClassPropertyChar( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
 
 struct JogCmdPostStepClassProperty : JogCmd
 {
@@ -6994,22 +7061,23 @@ struct JogCmdPostStepClassProperty : JogCmd
   JogPropertyInfo* var_info;
   int              modifier;
 
-  JogCmdPostStepClassProperty( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmd(t), context(context), var_info(var_info), modifier(modifier)
+  JogCmdPostStepClassProperty() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, JogPropertyInfo* var_info,
+      int modifier )
   {
-    if (*context) this->context = context->discarding_result();
+    this->t = t;
+    this->context  = context;
+    this->var_info = var_info;
+    this->modifier = modifier;
+    if (*context) context = context->discarding_result();
+    return this;
   }
 
   JogTypeInfo* type() { return var_info->type; }
 
   void print()
   {
-    if (*context)
-    {
-      context->print();
-      printf(".");
-    }
     var_info->name->print();
     if (modifier > 0) printf("++");
     else              printf("--");
@@ -7017,345 +7085,36 @@ struct JogCmdPostStepClassProperty : JogCmd
 
   Ref<JogCmd> resolve() { return this; }
 
-  void on_push( JogVM* vm );
+  void on_push( JogVM* vm )
+  { 
+    if (*context) vm->push( *context );
+  }
 };
 
-struct JogCmdPostStepClassPropertyReal64 : JogCmdPostStepClassProperty
+template <typename DataType>
+struct JogCmdPostStepClassPropertyReal : JogCmdPostStepClassProperty
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPostStepClassPropertyReal64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    double& v = ((double*)var_info->type_context->class_data)[var_info->index];
+    vm->push( v );
+    v = (DataType) (v + modifier);
   }
-
-  void execute( JogVM* vm );
 };
 
-struct JogCmdPostStepClassPropertyReal32 : JogCmdPostStepClassProperty
+template <typename DataType>
+struct JogCmdPostStepClassPropertyInteger : JogCmdPostStepClassProperty
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPostStepClassPropertyReal32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    JogInt64& v = var_info->type_context->class_data[var_info->index];
+    vm->push( v );
+    v = (DataType) (v + modifier);
   }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepClassPropertyInt64 : JogCmdPostStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepClassPropertyInt64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepClassPropertyInt32 : JogCmdPostStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepClassPropertyInt32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepClassPropertyInt16 : JogCmdPostStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepClassPropertyInt16( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepClassPropertyInt8 : JogCmdPostStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepClassPropertyInt8( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepClassPropertyChar : JogCmdPostStepClassProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepClassPropertyChar( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepClassProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-//--------------------------------------------------------------------
-
-struct JogCmdPreStepProperty : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  Ref<JogCmd>      context;
-  JogPropertyInfo* var_info;
-  int              modifier;
-
-  JogCmdPreStepProperty( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmd(t), context(context), var_info(var_info), modifier(modifier)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    context->print();
-    printf(".");
-    if (modifier > 0) printf("++");
-    else              printf("--");
-    var_info->name->print();
-  }
-
-  Ref<JogCmd> resolve() { return this; }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyReal64 : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyReal64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyReal32 : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyReal32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyInt64 : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyInt64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyInt32 : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyInt32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyInt16 : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyInt16( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyInt8 : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyInt8( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPreStepPropertyChar : JogCmdPreStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPreStepPropertyChar( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPreStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-
-
-struct JogCmdPostStepProperty : JogCmd
-{
-  int node_type() { return __LINE__; }
-
-  Ref<JogCmd>      context;
-  JogPropertyInfo* var_info;
-  int              modifier;
-
-  JogCmdPostStepProperty( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmd(t), context(context), var_info(var_info), modifier(modifier)
-  {
-  }
-
-  JogTypeInfo* type() { return var_info->type; }
-
-  void print()
-  {
-    context->print();
-    printf(".");
-    var_info->name->print();
-    if (modifier > 0) printf("++");
-    else              printf("--");
-  }
-
-  Ref<JogCmd> resolve() { return this; }
-
-  void on_push( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyReal64 : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyReal64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyReal32 : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyReal32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyInt64 : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyInt64( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyInt32 : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyInt32( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyInt16 : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyInt16( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyInt8 : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyInt8( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepPropertyChar : JogCmdPostStepProperty
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepPropertyChar( Ref<JogToken> t, Ref<JogCmd> context, 
-      JogPropertyInfo* var_info, int modifier )
-    : JogCmdPostStepProperty(t,context,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
 };
 
 //=============================================================================
@@ -7681,6 +7440,149 @@ struct JogCmdArrayWriteBoolean : JogCmdArrayWrite
 
   void execute( JogVM* vm );
 };
+
+//--------------------------------------------------------------------
+
+struct JogCmdPreStepArray : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  Ref<JogCmd>      context;
+  Ref<JogCmd>      index_expr;
+  int              modifier;
+
+  JogCmdPreStepArray() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      int modifier )
+  {
+    this->t = t;
+    this->context  = context;
+    this->index_expr = index_expr;
+    this->modifier = modifier;
+    return this;
+  }
+
+  JogTypeInfo* type() { return context->type()->element_type; }
+
+  void print()
+  {
+    if (modifier > 0) printf("++");
+    else              printf("--");
+    context->print();
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm )
+  { 
+    vm->push( *index_expr );
+    vm->push( *context );
+  }
+};
+
+template <typename DataType>
+struct JogCmdPreStepArrayReal : JogCmdPreStepArray
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+    DataType& v = ((DataType*)array->data)[index];
+    v = (DataType) (v + modifier);
+    vm->push( v );
+  }
+};
+
+template <typename DataType>
+struct JogCmdPreStepArrayInteger : JogCmdPreStepArray
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+    DataType& v = ((DataType*)array->data)[index];
+    v = (DataType) (v + modifier);
+    vm->push( v );
+  }
+};
+
+struct JogCmdPostStepArray : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  Ref<JogCmd>      context;
+  Ref<JogCmd>      index_expr;
+  int              modifier;
+
+  JogCmdPostStepArray() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, Ref<JogCmd> context, Ref<JogCmd> index_expr,
+      int modifier )
+  {
+    this->t = t;
+    this->context  = context;
+    this->index_expr = index_expr;
+    this->modifier = modifier;
+    return this;
+  }
+
+  JogTypeInfo* type() { return context->type()->element_type; }
+
+  void print()
+  {
+    context->print();
+    if (modifier > 0) printf("++");
+    else              printf("--");
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm )
+  { 
+    vm->push( *index_expr );
+    vm->push( *context );
+  }
+};
+
+template <typename DataType>
+struct JogCmdPostStepArrayReal : JogCmdPostStepArray
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+    DataType& v = ((DataType*)array->data)[index];
+    vm->push( v );
+    v = (DataType) (v + modifier);
+  }
+};
+
+template <typename DataType>
+struct JogCmdPostStepArrayInteger : JogCmdPostStepArray
+{
+  int node_type() { return __LINE__; }
+
+  void execute( JogVM* vm )
+  {
+    int index = vm->pop_int();
+    JogObject* array = vm->pop_ref().null_check(t);
+    array->index_check(t,index);
+    DataType& v = ((DataType*)array->data)[index];
+    vm->push( v );
+    v = (DataType) (v + modifier);
+  }
+};
+
 
 //=============================================================================
 //  JogParser
