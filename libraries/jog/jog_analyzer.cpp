@@ -3367,31 +3367,31 @@ Ref<JogCmd> JogCmdIdentifier::resolve_stepcount_access( int when, int modifier )
     {
       if (var_info->type == jog_type_manager.type_real64)
       {
-        return new JogCmdPostStepLocalReal64( t, var_info, modifier );
+        return (new JogCmdPostStepLocalReal<double>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_real32)
       {
-        return new JogCmdPostStepLocalReal32( t, var_info, modifier );
+        return (new JogCmdPostStepLocalReal<float>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int64)
       {
-        return new JogCmdPostStepLocalInt64( t, var_info, modifier );
+        return (new JogCmdPostStepLocalInteger<JogInt64>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int32)
       {
-        return new JogCmdPostStepLocalInt32( t, var_info, modifier );
+        return (new JogCmdPostStepLocalInteger<JogInt32>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int16)
       {
-        return new JogCmdPostStepLocalInt16( t, var_info, modifier );
+        return (new JogCmdPostStepLocalInteger<JogInt16>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_int8)
       {
-        return new JogCmdPostStepLocalInt8( t, var_info, modifier );
+        return (new JogCmdPostStepLocalInteger<JogInt8>())->init( t, var_info, modifier );
       }
       else if (var_info->type == jog_type_manager.type_char)
       {
-        return new JogCmdPostStepLocalChar( t, var_info, modifier );
+        return (new JogCmdPostStepLocalInteger<JogChar>())->init( t, var_info, modifier );
       }
       else
       {

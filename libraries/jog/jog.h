@@ -6805,9 +6805,14 @@ struct JogCmdPostStepLocal : JogCmd
   JogLocalVarInfo* var_info;
   int              modifier;
 
-  JogCmdPostStepLocal( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmd(t), var_info(var_info), modifier(modifier)
+  JogCmdPostStepLocal() : JogCmd(NULL) { }
+
+  Ref<JogCmd> init( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
   {
+    this->t = t;
+    this->var_info = var_info;
+    this->modifier = modifier;
+    return this;
   }
 
   JogTypeInfo* type() { return var_info->type; }
@@ -6824,89 +6829,32 @@ struct JogCmdPostStepLocal : JogCmd
   void on_push( JogVM* vm ) { }
 };
 
-struct JogCmdPostStepLocalReal64 : JogCmdPostStepLocal
+template <typename DataType>
+struct JogCmdPostStepLocalReal : JogCmdPostStepLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPostStepLocalReal64( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    vm->push( local );
+    local = (DataType)(local += modifier);
   }
-
-  void execute( JogVM* vm );
 };
 
-struct JogCmdPostStepLocalReal32 : JogCmdPostStepLocal
+template <typename DataType>
+struct JogCmdPostStepLocalInteger : JogCmdPostStepLocal
 {
   int node_type() { return __LINE__; }
 
-  JogCmdPostStepLocalReal32( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
+  void execute( JogVM* vm )
   {
+    JogInt64& local = ((JogInt64*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
+    vm->push( local );
+    local = (DataType)(local += modifier);
   }
-
-  void execute( JogVM* vm );
 };
 
-struct JogCmdPostStepLocalInt64 : JogCmdPostStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepLocalInt64( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepLocalInt32 : JogCmdPostStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepLocalInt32( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepLocalInt16 : JogCmdPostStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepLocalInt16( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepLocalInt8 : JogCmdPostStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepLocalInt8( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
-
-struct JogCmdPostStepLocalChar : JogCmdPostStepLocal
-{
-  int node_type() { return __LINE__; }
-
-  JogCmdPostStepLocalChar( Ref<JogToken> t, JogLocalVarInfo* var_info, int modifier )
-    : JogCmdPostStepLocal(t,var_info,modifier)
-  {
-  }
-
-  void execute( JogVM* vm );
-};
 
 
 //--------------------------------------------------------------------

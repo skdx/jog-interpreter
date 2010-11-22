@@ -1140,57 +1140,6 @@ void JogCmdWriteLocalRef::execute( JogVM* vm )
 
 //--------------------------------------------------------------------
 
-void JogCmdPostStepLocalReal64::execute( JogVM* vm )
-{
-  double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
-  vm->push( local );
-  local += modifier;
-}
-
-void JogCmdPostStepLocalReal32::execute( JogVM* vm )
-{
-  double& local = ((double*)vm->frame_ptr->data_stack_ptr)[var_info->offset];
-  vm->push( local );
-  local = (float)(local += modifier);
-}
-
-void JogCmdPostStepLocalInt64::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  vm->push( local );
-  local += modifier;
-}
-
-void JogCmdPostStepLocalInt32::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  vm->push( local );
-  local = (JogInt32)(local + modifier);
-}
-
-void JogCmdPostStepLocalInt16::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  vm->push( local );
-  local = (JogInt16)(local + modifier);
-}
-
-void JogCmdPostStepLocalInt8::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  vm->push( local );
-  local = (JogInt8)(local + modifier);
-}
-
-void JogCmdPostStepLocalChar::execute( JogVM* vm )
-{
-  JogInt64& local = vm->frame_ptr->data_stack_ptr[var_info->offset];
-  vm->push( local );
-  local = (JogChar)(local + modifier);
-}
-
-//--------------------------------------------------------------------
-
 void JogCmdPreStepClassProperty::on_push( JogVM* vm )
 {
   if (*context) vm->push(*context);

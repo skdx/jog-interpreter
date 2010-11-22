@@ -25,11 +25,8 @@ class Test
     // TODO: convert local post-increment to use template classes
     // TODO: convert object, class, & array pre/post increment/decrement to template classes
     int n = 5;
-    char ch = 'a';
-    println( ++n );
-    println( ++ch );
-    println( ++n );
-    println( ++ch );
+    println( n++ );
+    println( n );
 
     char[] data = {'a','b','c'};
     for (int i=0; i<data.length; ++i) data[i] += 2;
