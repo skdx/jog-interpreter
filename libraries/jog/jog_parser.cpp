@@ -47,30 +47,31 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
     }
     scanner->must_consume(TOKEN_GT,"'>' expected.");
 
-    int paren_count = 0;
-    bool found_first = false;
-    while (paren_count > 0 || !found_first )
+    // Set a mark to ensure that all the tokens are buffered, parse
+    // in the class, and collect the buffered tokens to use for
+    // implementing the template later on.
+    scanner->set_mark();
+    int count1 = scanner->history_stack.count;
+
+    parse_type_def( t, type );
+
+    int count2 = scanner->history_stack.count;
+    for (int i=count1; i<count2; ++i)
     {
-      Ref<JogToken> t2 = scanner->read();
-      switch (t2->type)
-      {
-        case TOKEN_EOF:
-          if ( !found_first ) throw t->error( "Type definition is missing the opening '{'." );
-          throw t->error( "Type definition is missing the closing '}'." );
-        case TOKEN_LCURLY:
-          ++paren_count;
-          found_first = true;
-          break;
-        case TOKEN_RCURLY:
-          if ( !found_first ) throw t->error( "Type definition is missing the opening '{'." );
-          --paren_count;
-          break;
-      }
-      type->template_tokens.add(t2);
+      type->template_tokens.add( scanner->history_stack[i] );
     }
+    scanner->clear_mark();
+
     return type;
   }
 
+  parse_type_def( t, type );
+
+  return type;
+}
+
+void JogParser::parse_type_def( Ref<JogToken> t, JogTypeInfo* type )
+{
   if (scanner->consume(TOKEN_EXTENDS))
   {
     type->base_class = parse_data_type();
@@ -88,8 +89,6 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
   }
 
   scanner->must_consume(TOKEN_RCURLY,"Closing '}' expected.");
-
-  return type;
 }
 
 JogPlaceholderType JogParser::parse_placeholder_type()
@@ -410,6 +409,21 @@ JogTypeInfo* JogParser::parse_data_type( bool parse_brackets )
   {
     name->add( "." );
     name->add( scanner->must_read_id("Sub-package or class name expected.") );
+  }
+
+  if (scanner->consume(TOKEN_LT))
+  {
+    name->add( "<" );
+    JogTypeInfo* subst_type = parse_data_type(true);
+    name->add(subst_type->name);
+    while (scanner->consume(TOKEN_COMMA))
+    {
+      name->add(",");
+      subst_type = parse_data_type(true);
+      name->add(subst_type->name);
+    }
+    scanner->must_consume( TOKEN_GT, "'>' expected." );
+    name->add(">");
   }
 
   if (parse_brackets)

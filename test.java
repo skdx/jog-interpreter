@@ -24,10 +24,11 @@ class Test
   Test()
   {
     println( "Hello World! " + 123 );
+    //Bag<Integer> bag = new Bag<Integer>();
   }
 }
 
-class Box<DataType>
+class Bag<DataType>
 {
 }
 

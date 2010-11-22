@@ -94,6 +94,46 @@ void JogTypeInfo::organize()
       element_type->organize();
       qualifiers = JOG_QUALIFIER_REFERENCE;
     }
+    else if (name->get(-1) == '>')
+    {
+      // Template type - find base template definition, duplicate its token set
+      // while substituting types, and the type def.
+      Ref<JogString> templ_name = name->before_first('<');
+      JogTypeInfo* templ = JogTypeInfo::reference( t, templ_name );
+      templ->organize();
+      if (templ->placeholder_types.count == 0)
+      {
+        StringBuilder buffer;
+        buffer.print( "'" );
+        buffer.print( templ->name->to_ascii()->data );
+        buffer.print( "' is not a generic class." );
+        throw t->error( buffer.to_string() );
+      }
+
+      RefList<JogString> subst_names;
+      name->substring(templ_name->count+1,name->count-2)->split(',',subst_names);
+      if (templ->placeholder_types.count != subst_names.count)
+      {
+        throw t->error( "Incorrect number of substitution types." );
+      }
+
+      ArrayList<JogTypeInfo*> subst_types;
+      for (int i=0; i<subst_names.count; ++i)
+      {
+        JogTypeInfo* subst_type = JogTypeInfo::reference( t, subst_names[i] );
+        subst_type->organize();
+        if (subst_type->is_primitive())
+        {
+          throw t->error( "Primitives cannot be used as substitution types." );
+        }
+      }
+
+      //Ref<JogScanner> old_scanner = scanner;
+      //scanner = new JogScanner
+      //scanner = old_scanner;
+
+      throw t->error("HERE");
+    }
     else
     {
       StringBuilder buffer;

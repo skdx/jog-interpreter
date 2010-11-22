@@ -314,6 +314,29 @@ struct JogString : RefCounted
   {
     return new JogString( data+i1, (i2-i1)+1 );
   }
+
+  void split( int ch, RefList<JogString>& list )
+  {
+    int i1 = 0;
+    int i2 = i1;
+    while (i2 < count)
+    {
+      if (data[i2] == ',')
+      {
+        list.add( substring(i1,i2-1) );
+        i1 = i2 + 1;
+        i2 = i1;
+      }
+      else
+      {
+        ++i2;
+      }
+    }
+    if (i2 > i1)
+    {
+      list.add( substring(i1,i2-1) );
+    }
+  }
 };
 
 struct JogStringComparator
@@ -7604,6 +7627,7 @@ struct JogParser : RefCounted
   JogParser( const char* filename );
   JogTypeInfo* parse_type_def();
   JogTypeInfo* parse_type_def( Ref<JogToken> t, int quals, const char* missing_name_mesg );
+  void parse_type_def( Ref<JogToken> t, JogTypeInfo* type );
   JogPlaceholderType parse_placeholder_type();
   int parse_type_qualifiers();
   int parse_member_qualifiers();
