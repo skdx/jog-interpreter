@@ -1401,6 +1401,13 @@ class JogMethodSet : public map<Ref<JogString>,ArrayList<JogMethodInfo*>*,JogStr
     }
 };
 
+struct JogPlaceholderType
+{
+  JogTypeInfo* type;
+
+  JogPlaceholderType( JogTypeInfo* type ) : type(type) { }
+};
+
 struct JogTypeInfo : RefCounted
 {
   int qualifiers;        // Bitwise combination of JOG_QUALIFIER_X
@@ -1427,6 +1434,8 @@ struct JogTypeInfo : RefCounted
   JogTypeInfo*            element_type; // Only non-NULL for arrays.
   JogTypeInfo*            base_class;   // set to NULL for Object, set to Object for aspects
   ArrayList<JogTypeInfo*> interfaces;
+  ArrayList<JogPlaceholderType> placeholder_types;
+  RefList<JogToken>             template_tokens;
 
   JogPropertyLookup class_properties_by_name;
   JogPropertyLookup properties_by_name;
@@ -7595,6 +7604,7 @@ struct JogParser : RefCounted
   JogParser( const char* filename );
   JogTypeInfo* parse_type_def();
   JogTypeInfo* parse_type_def( Ref<JogToken> t, int quals, const char* missing_name_mesg );
+  JogPlaceholderType parse_placeholder_type();
   int parse_type_qualifiers();
   int parse_member_qualifiers();
   bool parse_member( JogTypeInfo* type );

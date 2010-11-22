@@ -7,13 +7,14 @@
 //     - Primitive types and operations
 //     - Object types
 //     - System.out.print/println for primitive types
-//     - Arrays (length, get, set)
+//     - Arrays (1D)
 //     - Strings
 //
 //   TODO
-//     - Arrays (multidimensional, += on element, etc.)
-//     - Autoboxing
 //     - Generics
+//     - Multidimensional Arrays
+//     - Autoboxing
+//     - Interfaces
 //     - Respect private/protected access qualifiers
 //     - Maybe inner classes, maybe exceptions
 
@@ -22,18 +23,12 @@ class Test
 
   Test()
   {
-    char[] data = {'a','b','c'};
-    println( data[1]++ );
-    println( data[1] );
-    println( new String(data) );
+    println( "Hello World! " + 123 );
   }
 }
 
-class Alpha
+class Box<DataType>
 {
-  static String name;
-
-  Alpha( String name ) { this.name = name; }
 }
 
 //=============================================================================

@@ -33,9 +33,43 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
     quals |= JOG_QUALIFIER_PROTECTED;
   }
 
+  // Type name
   Ref<JogString> name = scanner->must_read_id( missing_name_mesg );
-
   JogTypeInfo* type = JogTypeInfo::create( t, quals, name );
+
+  // Template type (Jog implements templates instead of generics).
+  if (scanner->consume(TOKEN_LT))
+  {
+    type->placeholder_types.add( parse_placeholder_type() );
+    while (scanner->consume(TOKEN_COMMA))
+    {
+      type->placeholder_types.add( parse_placeholder_type() );
+    }
+    scanner->must_consume(TOKEN_GT,"'>' expected.");
+
+    int paren_count = 0;
+    bool found_first = false;
+    while (paren_count > 0 || !found_first )
+    {
+      Ref<JogToken> t2 = scanner->read();
+      switch (t2->type)
+      {
+        case TOKEN_EOF:
+          if ( !found_first ) throw t->error( "Type definition is missing the opening '{'." );
+          throw t->error( "Type definition is missing the closing '}'." );
+        case TOKEN_LCURLY:
+          ++paren_count;
+          found_first = true;
+          break;
+        case TOKEN_RCURLY:
+          if ( !found_first ) throw t->error( "Type definition is missing the opening '{'." );
+          --paren_count;
+          break;
+      }
+      type->template_tokens.add(t2);
+    }
+    return type;
+  }
 
   if (scanner->consume(TOKEN_EXTENDS))
   {
@@ -56,6 +90,11 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
   scanner->must_consume(TOKEN_RCURLY,"Closing '}' expected.");
 
   return type;
+}
+
+JogPlaceholderType JogParser::parse_placeholder_type()
+{
+  return JogPlaceholderType( parse_data_type() );
 }
 
 int JogParser::parse_type_qualifiers()
