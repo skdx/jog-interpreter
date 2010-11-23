@@ -101,6 +101,8 @@ void JogTypeInfo::organize()
       Ref<JogString> templ_name = name->before_first('<');
       JogTypeInfo* templ = JogTypeInfo::reference( t, templ_name );
       templ->organize();
+      qualifiers = templ->qualifiers;
+
       if (templ->placeholder_types.count == 0)
       {
         StringBuilder buffer;
@@ -117,7 +119,7 @@ void JogTypeInfo::organize()
         throw t->error( "Incorrect number of substitution types." );
       }
 
-      ArrayList<JogTypeInfo*> subst_types;
+      //ArrayList<JogTypeInfo*> subst_types;
       for (int i=0; i<subst_names.count; ++i)
       {
         JogTypeInfo* subst_type = JogTypeInfo::reference( t, subst_names[i] );
@@ -128,11 +130,45 @@ void JogTypeInfo::organize()
         }
       }
 
-      //Ref<JogScanner> old_scanner = scanner;
-      //scanner = new JogScanner
-      //scanner = old_scanner;
+      int count = templ->template_tokens.count;
+      RefList<JogToken> tokens;
+      for (int i=0; i<count; ++i)
+      {
+        Ref<JogToken> t2 = templ->template_tokens[i];
 
-      throw t->error("HERE");
+        if (t2->type == TOKEN_ID)
+        {
+          if (t2->content->equals(templ->name))
+          {
+            // E.g. constructors for ArrayList<DataType> are written
+            // as ArrayList() but are transformed to ArrayList<DataType>()
+            Ref<JogToken> t3 = new JogToken( t2->reader, t2->line, t2->column );
+            t3->type = t2->type;
+            t3->content = name;
+            t2 = t3;
+          }
+          else
+          {
+            for (int i=0; i<templ->placeholder_types.count; ++i)
+            {
+              if (t2->content->equals(templ->placeholder_types[i].type->name))
+              {
+                Ref<JogToken> t3 = new JogToken( t2->reader, t2->line, t2->column );
+                t3->type = t2->type;
+                t3->content = subst_names[i];
+                t2 = t3;
+                break;
+              }
+            }
+          }
+        }
+
+        tokens.add( t2 );
+      }
+      Ref<JogScanner> scanner = new JogScanner( tokens );
+
+      Ref<JogParser> parser = new JogParser(scanner);
+      parser->parse_type_def( t, this );
     }
     else
     {

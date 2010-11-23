@@ -142,9 +142,9 @@ Ref<JogCmd> JogCmd::discarding_result()
 
   if (result_type == NULL) return this;
 
-  if (result_type->is_reference()) return new JogCmdDiscardRefResult(t,this);
+  if (result_type->is_primitive()) return new JogCmdDiscardDataResult(t,this);
 
-  return new JogCmdDiscardDataResult(t,this);
+  return new JogCmdDiscardRefResult(t,this);
 }
 
 Ref<JogCmd> JogCmd::cast_to_type( JogTypeInfo* to_type )
@@ -295,6 +295,7 @@ void JogVM::compile()
 
   for (int i=0; i<types.count; ++i)
   {
+    if (types[i]->is_template()) continue;
     types[i]->resolve();
   }
 }

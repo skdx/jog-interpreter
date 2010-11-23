@@ -5,6 +5,8 @@ JogParser::JogParser( const char* filename ) : this_method(NULL)
   scanner = new JogScanner( new JogReader(filename) );
 }
 
+JogParser::JogParser( Ref<JogScanner> scanner ) : scanner(scanner) { }
+
 JogTypeInfo* JogParser::parse_type_def()
 {
   int quals = parse_type_qualifiers();
@@ -405,11 +407,13 @@ JogTypeInfo* JogParser::parse_data_type( bool parse_brackets )
 {
   Ref<JogToken> t = scanner->peek();
   Ref<JogString> name = scanner->must_read_id("Data type expected (void, int, String, ...).");
-  while (scanner->consume(TOKEN_PERIOD))
-  {
-    name->add( "." );
-    name->add( scanner->must_read_id("Sub-package or class name expected.") );
-  }
+  name = new JogString(name);  // create duplicate to modify
+
+  //while (scanner->consume(TOKEN_PERIOD))
+  //{
+    //name->add( "." );
+    //name->add( scanner->must_read_id("Sub-package or class name expected.") );
+  //}
 
   if (scanner->consume(TOKEN_LT))
   {
@@ -1151,16 +1155,27 @@ Ref<JogCmd> JogParser::parse_construct()
 {
   Ref<JogToken>    t = scanner->peek();
 
-  Ref<JogString>   name = scanner->must_read_id( "Identifier expected." );
-
-  if (scanner->next_is(TOKEN_LT))
+  scanner->set_mark();
+  Ref<JogString> name;
+  try
   {
-    // Might have a data type, e.g. "ArrayList<Double>".  Try parsing that.
-    // TODO
+    JogTypeInfo* type = parse_data_type(true);
+    name = type->name;
+    scanner->clear_mark();
+  }
+  catch (Ref<JogError> error)
+  {
+    scanner->rewind_to_mark();
+    name = scanner->must_read_id( "Identifier expected." );
   }
 
-  Ref<JogCmdList>  args = parse_args(false);
-  if (*args == NULL) return new JogCmdIdentifier(t,name);
+  Ref<JogCmdList>  args;
+  if (name->get(-1) != '>') args = parse_args(false);
+
+  if (*args == NULL) 
+  {
+    return new JogCmdIdentifier(t,name);
+  }
 
   return new JogCmdMethodCall( t, name, args );
 }

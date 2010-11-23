@@ -595,6 +595,7 @@ struct JogScanner : RefCounted
   UnicodeStringBuilder   unicode_buffer;
 
   JogScanner( Ref<JogReader> reader );
+  JogScanner( RefList<JogToken>& tokens );
 
   void set_up_keywords();
   void consume_ws();
@@ -1511,6 +1512,7 @@ struct JogTypeInfo : RefCounted
 
   bool is_type() { return (qualifiers != 0); }
   bool is_array() { return element_type != NULL; }
+  bool is_template() { return placeholder_types.count > 0; }
 
   bool instance_of( JogTypeInfo* base_type );
 
@@ -3044,7 +3046,7 @@ struct JogCmdLiteralArrayPrimitive : JogCmdLiteralArray
 
   void store_value( JogVM* vm, int index, JogInt64 value )
   {
-    ((DataType*)vm->peek_ref()->data)[index] = value;
+    ((DataType*)vm->peek_ref()->data)[index] = (DataType) value;
   }
 };
 
@@ -7625,6 +7627,8 @@ struct JogParser : RefCounted
   JogMethodInfo*  this_method;
 
   JogParser( const char* filename );
+  JogParser( Ref<JogScanner> scanner );
+
   JogTypeInfo* parse_type_def();
   JogTypeInfo* parse_type_def( Ref<JogToken> t, int quals, const char* missing_name_mesg );
   void parse_type_def( Ref<JogToken> t, JogTypeInfo* type );

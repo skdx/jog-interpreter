@@ -9,12 +9,13 @@
 //     - System.out.print/println for primitive types
 //     - Arrays (1D)
 //     - Strings
+//     - Generics (actually templates are used)
 //
 //   TODO
-//     - Generics
+//     - 'for-each'
+//     - Interfaces
 //     - Multidimensional Arrays
 //     - Autoboxing
-//     - Interfaces
 //     - Respect private/protected access qualifiers
 //     - Maybe inner classes, maybe exceptions
 
@@ -24,17 +25,73 @@ class Test
   Test()
   {
     println( "Hello World! " + 123 );
-    //Bag<Integer> bag = new Bag<Integer>();
+    ArrayList<String> names = new ArrayList<String>(1);
+    names.add("Abe");
+    names.add("James");
+    names.add("Ty");
+    names.add("Murphy");
+    for (int i=0; i<names.size(); ++i)
+    {
+      println( names.get(i) );
+    }
   }
 }
 
 class Bag<DataType>
 {
+  DataType n;
+
+  public String toString() { return "Bag!"; }
 }
 
 //=============================================================================
 // STANDARD LIBRARY - DON'T DELETE
 //=============================================================================
+
+//=============================================================================
+//  ArrayList
+//=============================================================================
+class ArrayList<DataType>
+{
+  DataType[] data;
+  int size;
+
+  ArrayList()
+  {
+    this(10);
+  }
+
+  ArrayList( int capacity )
+  {
+    data = new DataType[capacity];
+  }
+
+  int size() { return size; }
+
+  void ensureCapacity( int min_capacity )
+  {
+    if (data.length >= min_capacity) return;
+
+    int new_cap = data.length * 2;
+    if (new_cap < min_capacity) new_cap = min_capacity;
+    DataType[] new_data = new DataType[new_cap];
+    for (int i=0; i<size; ++i) { new_data[i] = data[i]; }
+
+    data = new_data;
+  }
+
+  boolean add( DataType value )
+  {
+    ensureCapacity(size+1);
+    data[size++] = value;
+    return true;
+  }
+
+  DataType get( int index )
+  {
+    return data[index];
+  }
+}
 
 //=============================================================================
 //  Math

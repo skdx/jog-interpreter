@@ -214,6 +214,17 @@ JogScanner::JogScanner( Ref<JogReader> reader ) : reader(reader)
   prep_next();
 }
 
+JogScanner::JogScanner( RefList<JogToken>& tokens )
+{
+  set_up_keywords();
+
+  Ref<JogToken> first = tokens[0];
+  Ref<JogToken> eof = new JogToken(first->reader,first->line,first->column);
+  eof->type = TOKEN_EOF;
+  pending_stack.add( eof );
+  while (tokens.count) pending_stack.add(tokens.remove_last());
+}
+
 void JogScanner::set_up_keywords()
 {
   if (keywords.size() > 0) return;   // already set up
