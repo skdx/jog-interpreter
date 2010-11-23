@@ -37,6 +37,9 @@ class Test
     {
       println(nums.get(i));
     }
+
+    println();
+    for (int i=0; i<10; ++i) println( Math.random() );
   }
 }
 
@@ -103,7 +106,10 @@ class ArrayList<DataType>
 //=============================================================================
 class Math
 {
+  static Random random_gen = new Random();
+
   native static double floor( double n );
+  static double random() { return random_gen.nextDouble(); }
 }
 
 //=============================================================================
@@ -581,6 +587,105 @@ class StringBuilder
   }
 }
 
+class PrintWriter
+{
+  void print( boolean n ) { print( Boolean.toString(n) ); }
+  native void print( char ch );
+  void print( double n ) { print( Double.toString(n) ); }
+  void print( int n ) { print( Integer.toString(n) ); }
+  void print( long n ) { print( Long.toString(n) ); }
+  native void print( String st );
+
+  void println() { print('\n'); }
+  void println( boolean n ) { print(n); print('\n'); }
+  void println( char ch ) { print(ch); print('\n'); }
+  void println( double n ) { print(n); print('\n'); }
+  void println( int n ) { print(n); print('\n'); }
+  void println( long n ) { print(n); print('\n'); }
+  void println( String st ) { print(st); print('\n'); }
+}
+
+class Random
+{
+  long seed;
+
+  Random()
+  {
+    this( System.currentTimeMillis() );
+  }
+
+  Random( long seed )
+  {
+    this.seed = seed;
+  }
+
+  int next( int bits )
+  {
+    seed = (seed * 0x5DEECE66DL + 11L) & ((1L << 48) - 1L);
+    return (int)(seed >>> (48 - bits));
+  }
+
+  boolean nextBoolean() { return next(1) == 1; }
+
+  void nextBytes( byte[] bytes )
+  {
+    for (int i=0; i<bytes.length; ++i) bytes[i] = (byte) next(8);
+  }
+
+  double nextDouble()
+  {
+    return (((long)next(26) << 27) + next(27)) / (double)(1L << 53);
+  }
+
+  float nextFloat()
+  { 
+    return next(24) / ((float)(1 << 24));
+  }
+
+  /*
+  double  next_next_gaussian;
+  boolean have_next_next_guassian;
+  public double nextGaussian() 
+  {
+    clear the have next flag in setSeed()
+    if (have_next_next_guassian) 
+    {
+      have_next_next_guassian = false;
+      return next_next_gaussian;
+    } 
+    else 
+    {
+      double v1, v2, s;
+      do {
+        v1 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
+        v2 = 2 * nextDouble() - 1;   // between -1.0 and 1.0
+        s = v1 * v1 + v2 * v2;
+      } while (s >= 1 || s == 0);
+      double multiplier = StrictMath.sqrt(-2 * StrictMath.log(s)/s);
+      next_next_gaussian = v2 * multiplier;
+      have_next_next_guassian = true;
+      return v1 * multiplier;
+    }
+  }
+  */
+
+  int nextInt() { return next(32); }
+
+  public int nextInt( int limit ) 
+  {
+    assert( limit > 0, "nextInt() parameter is non-positive." );
+
+    return (int)(nextDouble() * limit);
+  }
+
+  public long nextLong() { return ((long)next(32) << 32) + next(32); }
+
+  public void setSeed( long seed )
+  {
+    this.seed = seed;
+  }
+}
+
 class System
 {
   static PrintWriter out;
@@ -591,23 +696,5 @@ class System
   }
 
   native static long currentTimeMillis();
-}
-
-class PrintWriter
-{
-  native void print( boolean n );
-  native void print( char ch );
-  native void print( double n );
-  native void print( int n );
-  native void print( long n );
-  native void print( String st );
-
-  void println() { print('\n'); }
-  void println( boolean n ) { print(n); print('\n'); }
-  void println( char ch ) { print(ch); print('\n'); }
-  void println( double n ) { print(n); print('\n'); }
-  void println( int n ) { print(n); print('\n'); }
-  void println( long n ) { print(n); print('\n'); }
-  void println( String st ) { print(st); print('\n'); }
 }
 
