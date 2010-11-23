@@ -25,6 +25,18 @@ class Test
   Test()
   {
     println( "Hello World! " + 123 );
+    println();
+
+    ArrayList<Integer> nums = new ArrayList<Integer>();
+    nums.add(2);
+    nums.add(4);
+    nums.add(6);
+    nums.add(8);
+    nums.add(10);
+    for (int i=0; i<nums.size(); ++i)
+    {
+      println(nums.get(i));
+    }
   }
 }
 
@@ -421,14 +433,28 @@ class Object
   static public void print( double n ) { System.out.print(n); }
   static public void print( int n ) { System.out.print(n); }
   static public void print( long n ) { System.out.print(n); }
-  static public void print( Object obj ) { System.out.print(obj.toString()); }
+
+  static public void print( Object obj )
+  {
+    if (obj == null) System.out.print("null");
+    else System.out.print(obj.toString());
+  }
+
   static public void print( String st ) { System.out.print(st); }
+
+  static public void println() { System.out.println(); }
   static public void println( boolean n ) { System.out.println(n); }
   static public void println( char ch ) { System.out.println(ch); }
   static public void println( double n ) { System.out.println(n); }
   static public void println( int n ) { System.out.println(n); }
   static public void println( long n ) { System.out.println(n); }
-  static public void println( Object obj ) { System.out.println(obj.toString()); }
+
+  static public void println( Object obj ) 
+  { 
+    if (obj == null) System.out.println("null");
+    else System.out.println(obj.toString()); 
+  }
+
   static public void println( String st ) { System.out.println(st); }
 }
 
@@ -576,6 +602,7 @@ class PrintWriter
   native void print( long n );
   native void print( String st );
 
+  void println() { print('\n'); }
   void println( boolean n ) { print(n); print('\n'); }
   void println( char ch ) { print(ch); print('\n'); }
   void println( double n ) { print(n); print('\n'); }

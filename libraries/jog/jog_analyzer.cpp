@@ -180,7 +180,6 @@ void JogTypeInfo::organize()
     }
   }
 
-  // Inherit base class properties and methods.
   if ( !base_class && this != jog_type_manager.type_object )
   {
     base_class = jog_type_manager.type_object;
@@ -208,6 +207,8 @@ void JogTypeInfo::prep()
 
   if (base_class)
   {
+    base_class->prep();
+
     if (base_class->instance_of(this))
     {
       throw t->error( "Illegal cyclic inheritance." );
@@ -797,6 +798,42 @@ JogMethodInfo* JogCmd::resolve_call( Ref<JogToken> t,
       matches.clear();
     }
   }
+
+  // Prefer primitives over primitive wrappers.
+  /*
+  if (candidates.count > 1)
+  {
+    for (int i=0; i<candidates.count; ++i)
+    {
+      bool discard = false;
+      for (int j=0; j<candidates.count; ++j)
+      {
+        if (i == j) continue;
+
+        JogMethodInfo* m1 = candidates[i];
+        JogMethodInfo* m2 = candidates[j];
+
+        if (m1->uses_wrappers_more_than(m2))
+        {
+          discard = true;
+          break;
+        }
+      }
+      if (!discard) matches.add(candidates[i]);
+    }
+
+    if (matches.count == 0) 
+    {
+      print_candidates( t, context_type, name, args->commands, candidates );
+    }
+    else
+    {
+      candidates.clear();
+      candidates.add( matches );
+      matches.clear();
+    }
+  }
+  */
 
   // We're left with the best match.
   if (candidates.count != 1) 
@@ -2460,6 +2497,7 @@ Ref<JogCmd> JogCmdIdentifier::resolve_assignment( Ref<JogCmd> context, Ref<JogCm
       if (var_info->type->is_reference())
       {
         var_info->type->resolve();
+        new_value = new_value->box(var_info->type);
         new_value->require_instance_of(var_info->type);
         return new JogCmdWriteLocalRef( t, var_info, new_value );
       }
@@ -2515,6 +2553,7 @@ Ref<JogCmd> JogCmdIdentifier::resolve_assignment( Ref<JogCmd> context, Ref<JogCm
       if (var_info->type->is_reference())
       {
         var_info->type->resolve();
+        new_value = new_value->box(var_info->type);
         new_value->require_instance_of(var_info->type);
         return new JogCmdWritePropertyRef( t, context, var_info, new_value );
       }
@@ -2566,6 +2605,7 @@ Ref<JogCmd> JogCmdIdentifier::resolve_assignment( JogTypeInfo* class_context,
     if (var_info->type->is_reference())
     {
       var_info->type->resolve();
+      new_value = new_value->box(var_info->type);
       new_value->require_instance_of(var_info->type);
       return new JogCmdWriteClassPropertyRef( t, context, var_info, new_value );
     }

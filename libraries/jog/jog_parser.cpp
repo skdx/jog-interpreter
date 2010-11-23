@@ -552,7 +552,7 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
     Ref<JogCmdAssert> cmd = new JogCmdAssert( t, parse_expression() );
     if (scanner->consume(TOKEN_COMMA))
     {
-      if ( !scanner->peek()->type == TOKEN_STRING )
+      if ( scanner->peek()->type != TOKEN_STRING )
       {
         throw scanner->peek()->error( "Literal string expected." );
       }

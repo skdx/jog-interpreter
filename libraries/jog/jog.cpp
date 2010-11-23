@@ -174,6 +174,49 @@ Ref<JogCmd> JogCmd::cast_to_type( JogTypeInfo* to_type )
 
       return new JogCmdCast( t, this, to_type );
     }
+    else
+    {
+      // Possibly un-box primitive
+      if (cur_type == jog_type_manager.type_boolean_wrapper)
+      {
+        if (to_type == jog_type_manager.type_boolean)
+        {
+          return new JogCmdMemberAccess( t, this,
+              new JogCmdMethodCall( t, new JogString("booleanValue"), new JogCmdList(t) )
+            );
+        }
+      }
+
+      if (cur_type->instance_of(jog_type_manager.type_number))
+      {
+        char* m_name;
+        if (to_type == jog_type_manager.type_real64) m_name = "doubleValue";
+        else if (to_type == jog_type_manager.type_real32) m_name = "floatValue";
+        else if (to_type == jog_type_manager.type_int64)  m_name = "longValue";
+        else if (to_type == jog_type_manager.type_int32)  m_name = "intValue";
+        else if (to_type == jog_type_manager.type_int16)  m_name = "shortValue";
+        else if (to_type == jog_type_manager.type_int8)   m_name = "byteValue";
+        else                                              m_name = "charValue";
+
+        return new JogCmdMemberAccess( t, this,
+            new JogCmdMethodCall( t, new JogString(m_name), new JogCmdList(t) )
+          );
+      }
+    }
+  }
+  else
+  {
+    if (cur_type->is_primitive())
+    {
+      // Possibly box primitive type.
+      if (to_type == cur_type->wrapper_type() || to_type == jog_type_manager.type_object
+          || to_type == jog_type_manager.type_number)
+      {
+        Ref<JogCmdList> args = new JogCmdList(t);
+        args->add( this );
+        return new JogCmdNewObject( t, cur_type->wrapper_type(), args );
+      }
+    }
   }
 
   if (to_type == jog_type_manager.type_string)
@@ -254,6 +297,23 @@ JogTypeInfo* JogCmd::require_primitive()
   return this_type;
 }
 
+Ref<JogCmd> JogCmd::box( JogTypeInfo* as_type )
+{
+  JogTypeInfo* this_type = type();
+  JogTypeInfo* wrapper_type = this_type->wrapper_type();
+  if (wrapper_type) wrapper_type->resolve();
+
+  if (this_type->is_primitive() 
+      && (wrapper_type == as_type || as_type == jog_type_manager.type_object
+        || as_type == jog_type_manager.type_number))
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return (new JogCmdNewObject( t, wrapper_type, args ))->resolve();
+  }
+  return this;
+}
+
 
 //=============================================================================
 //  JogVM
@@ -276,6 +336,7 @@ void JogVM::compile()
   jog_type_manager.type_string = jog_type_manager.must_find_type("String");
   jog_type_manager.type_char_array = jog_type_manager.must_find_type("char[]");
 
+  jog_type_manager.type_number = jog_type_manager.must_find_type("Number");
   jog_type_manager.type_real64_wrapper = jog_type_manager.must_find_type("Double");
   jog_type_manager.type_real32_wrapper = jog_type_manager.must_find_type("Float");
   jog_type_manager.type_int64_wrapper = jog_type_manager.must_find_type("Long");
@@ -652,7 +713,18 @@ bool JogTypeInfo::is_compatible_with( JogTypeInfo* other )
 
   if (this->is_reference() ^ other->is_reference()) 
   {
-    //printf("TODO: jog.cpp is_compatible_with() primitive boxing\n");
+    if (this->is_reference())
+    {
+      if (this == other->wrapper_type()) return true;
+      if (this == jog_type_manager.type_number) return true;
+      if (this == jog_type_manager.type_object) return true;
+    }
+    else
+    {
+      if (other == this->wrapper_type()) return true;
+      if (other == jog_type_manager.type_number) return true;
+      if (other == jog_type_manager.type_object) return true;
+    }
     return false;
   }
 
@@ -708,8 +780,6 @@ JogTypeInfo* JogTypeInfo::wrapper_type()
   {
     return jog_type_manager.type_boolean_wrapper;
   }
-
-  printf( "[Internal] Wrapper for non-primitive type requested.\n" );
   return NULL;
 }
 
@@ -753,10 +823,18 @@ Ref<JogCmd> JogCmdLiteralReal64::cast_to_type( JogTypeInfo* to_type )
   {
     return new JogCmdLiteralChar( t, (JogChar) value );
   }
+
+  if (to_type == jog_type_manager.type_real64_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_real64_wrapper, args );
+  }
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'double' to type " );
+  buffer.print( "Can't cast type 'double' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
@@ -794,10 +872,17 @@ Ref<JogCmd> JogCmdLiteralReal32::cast_to_type( JogTypeInfo* to_type )
     return new JogCmdLiteralChar( t, (JogChar) value );
   }
 
+  if (to_type == jog_type_manager.type_real32_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_real32_wrapper, args );
+  }
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'float' to type " );
+  buffer.print( "Can't cast type 'float' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
@@ -835,10 +920,17 @@ Ref<JogCmd> JogCmdLiteralInt64::cast_to_type( JogTypeInfo* to_type )
     return new JogCmdLiteralChar( t, (JogChar) value );
   }
 
+  if (to_type == jog_type_manager.type_int64_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_int64_wrapper, args );
+  }
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'int' to type " );
+  buffer.print( "Can't cast type 'long' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
@@ -876,10 +968,17 @@ Ref<JogCmd> JogCmdLiteralInt32::cast_to_type( JogTypeInfo* to_type )
     return new JogCmdLiteralChar( t, (JogChar) value );
   }
 
+  if (to_type == jog_type_manager.type_int32_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_int32_wrapper, args );
+  }
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'int' to type " );
+  buffer.print( "Can't cast type 'int' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
@@ -917,10 +1016,17 @@ Ref<JogCmd> JogCmdLiteralInt16::cast_to_type( JogTypeInfo* to_type )
     return new JogCmdLiteralChar( t, (JogChar) value );
   }
 
+  if (to_type == jog_type_manager.type_int16_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_int16_wrapper, args );
+  }
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'short' to type " );
+  buffer.print( "Can't cast type 'short' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
@@ -958,10 +1064,18 @@ Ref<JogCmd> JogCmdLiteralInt8::cast_to_type( JogTypeInfo* to_type )
     return new JogCmdLiteralChar( t, (JogChar) value );
   }
 
+  if (to_type == jog_type_manager.type_int8_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_int8_wrapper, args );
+  }
+
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'int' to type " );
+  buffer.print( "Can't cast type 'byte' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
@@ -999,16 +1113,31 @@ Ref<JogCmd> JogCmdLiteralChar::cast_to_type( JogTypeInfo* to_type )
     return new JogCmdLiteralInt8( t, (JogInt8) value );
   }
 
+  if (to_type == jog_type_manager.type_char_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_char_wrapper, args );
+  }
+
   StringBuilder buffer;
-  buffer.print( "Can't cast type 'int' to type " );
+  buffer.print( "Can't cast type 'char' to type '" );
   buffer.print( to_type->name->to_ascii()->data );
-  buffer.print( "." );
+  buffer.print( "'." );
   throw error( buffer.to_string() );
 }
 
 Ref<JogCmd> JogCmdLiteralBoolean::cast_to_type( JogTypeInfo* to_type )
 {
   if (to_type == jog_type_manager.type_boolean) return this;
+
+  if (to_type == jog_type_manager.type_boolean_wrapper || to_type == jog_type_manager.type_object)
+  {
+    Ref<JogCmdList> args = new JogCmdList(t);
+    args->add( this );
+    return new JogCmdNewObject( t, jog_type_manager.type_boolean_wrapper, args );
+  }
+
   throw error( "A boolean cannot be cast to any other type." );
 }
 
@@ -1169,8 +1298,15 @@ bool JogMethodInfo::is_less_specific_than( JogMethodInfo* other )
     JogTypeInfo* other_type = other->parameters[i]->type;
     if (this_type != other_type)
     {
-      if (this_type->is_compatible_with(other_type)) ++more_specific;
-      else ++less_specific;
+      if (this_type->is_compatible_with(other_type))
+      {
+        if (this_type->is_reference() && other_type->is_primitive()) ++less_specific;
+        else ++more_specific;
+      }
+      else
+      {
+        ++less_specific;
+      }
     }
   }
 

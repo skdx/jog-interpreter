@@ -716,6 +716,8 @@ struct JogCmd : RefCounted
   JogTypeInfo* require_instance_of( JogTypeInfo* base_type );
   JogTypeInfo* require_primitive();
 
+  virtual Ref<JogCmd> box( JogTypeInfo* as_type );
+
   Ref<JogError> error( const char* mesg ) { return t->error(mesg); } 
 
   JogInt64 zero_check( JogInt64 value )
@@ -967,6 +969,7 @@ struct JogVM : RefCounted
 
   JogStackFrame      frames[JOG_FRAME_STACK_CAPACITY];
   JogStackFrame*     frame_ptr;
+  JogStackFrame*     frame_stack_limit;
 
   JogNativeMethodLookup native_methods;
 
@@ -980,7 +983,8 @@ struct JogVM : RefCounted
     data_stack_ptr          = data_stack_limit;
     ref_stack_limit         = ref_stack + JOG_REF_STACK_CAPACITY;
     ref_stack_ptr           = ref_stack_limit;
-    frame_ptr               = frames + JOG_FRAME_STACK_CAPACITY;
+    frame_stack_limit       = frames + JOG_FRAME_STACK_CAPACITY;
+    frame_ptr               = frame_stack_limit;
   }
 
   ~JogVM() { reset(); }
@@ -1018,6 +1022,12 @@ struct JogVM : RefCounted
 
   void pop_frame() 
   {
+    if (frame_ptr == frame_stack_limit)
+    {
+      Ref<JogError> err = new JogError("[Internal] Frame stack underflow.");
+      throw err;
+    }
+
     instruction_stack_ptr = frame_ptr->instruction_stack_ptr;
     data_stack_ptr = frame_ptr->data_stack_ptr;
 
@@ -1580,6 +1590,7 @@ struct JogTypeManager
   JogTypeInfo* type_int8;
   JogTypeInfo* type_char;
   JogTypeInfo* type_boolean;
+  JogTypeInfo* type_number;
   JogTypeInfo* type_real64_wrapper;
   JogTypeInfo* type_real32_wrapper;
   JogTypeInfo* type_int64_wrapper;
