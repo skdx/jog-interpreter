@@ -3704,6 +3704,18 @@ Ref<JogCmd> JogCmdLocalVarDeclaration::resolve()
   }
 }
 
+Ref<JogCmd> JogCmdAssert::resolve()
+{
+  if (resolved) return this;
+  resolved = true;
+
+  expression = expression->resolve();
+  expression->require_boolean();
+
+  return this;
+}
+
+
 Ref<JogCmd> JogCmdBlock::resolve()
 {
   int old_local_count = jog_context->locals.count;

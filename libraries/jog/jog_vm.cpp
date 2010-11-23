@@ -78,6 +78,20 @@ void JogCmdLiteralString::execute( JogVM* vm )
   vm->push( runtime_object );
 }
 
+void JogCmdAssert::on_push( JogVM* vm )
+{ 
+  vm->push( *expression );
+}
+
+void JogCmdAssert::execute( JogVM* vm )
+{
+  if ( !vm->pop_data() )
+  {
+    if (*message) throw t->error(message);
+    else throw t->error( "Assertion failed." );
+  }
+}
+
 void JogCmdBlock::on_push( JogVM* vm ) { }
 
 void JogCmdBlock::execute( JogVM* vm )

@@ -1932,6 +1932,36 @@ struct JogCmdLocalVarDeclarations : JogCmdList
   }
 };
 
+struct JogCmdAssert : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  Ref<JogCmd>      expression;
+  Ref<ASCIIString> message;
+  bool resolved;
+
+  JogCmdAssert( Ref<JogToken> t, Ref<JogCmd> expression ) 
+    : JogCmd(t), expression(expression), resolved(false)
+  {
+  }
+
+  JogTypeInfo* type() { return NULL; }
+
+  void print()
+  {
+    printf("assert (");
+    expression->print();
+    printf(")\n");
+  }
+
+  Ref<JogCmd> resolve();
+
+  void on_push( JogVM* vm );
+
+  void execute( JogVM* vm );
+};
+
+
 struct JogCmdBlock : JogCmd
 {
   int node_type() { return __LINE__; }

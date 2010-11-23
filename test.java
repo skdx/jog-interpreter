@@ -25,15 +25,6 @@ class Test
   Test()
   {
     println( "Hello World! " + 123 );
-    ArrayList<String> names = new ArrayList<String>(1);
-    names.add("Abe");
-    names.add("James");
-    names.add("Ty");
-    names.add("Murphy");
-    for (int i=0; i<names.size(); ++i)
-    {
-      println( names.get(i) );
-    }
   }
 }
 
@@ -63,6 +54,7 @@ class ArrayList<DataType>
 
   ArrayList( int capacity )
   {
+    assert( capacity>=1, "Initial ArrayList capacity must be at least 1." );
     data = new DataType[capacity];
   }
 
@@ -89,6 +81,7 @@ class ArrayList<DataType>
 
   DataType get( int index )
   {
+    assert( index>=0 && index<size, "ArrayList get() index out of bounds." );
     return data[index];
   }
 }

@@ -546,6 +546,22 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
     return *loop;
   }
 
+  if (scanner->consume(TOKEN_ASSERT))
+  {
+    scanner->must_consume( TOKEN_LPAREN, "Opening '(' expected." );
+    Ref<JogCmdAssert> cmd = new JogCmdAssert( t, parse_expression() );
+    if (scanner->consume(TOKEN_COMMA))
+    {
+      if ( !scanner->peek()->type == TOKEN_STRING )
+      {
+        throw scanner->peek()->error( "Literal string expected." );
+      }
+      cmd->message = scanner->read()->content->to_ascii();
+    }
+    scanner->must_consume( TOKEN_RPAREN, "Closing ')' expected." );
+    return *cmd;
+  }
+
   Ref<JogCmd> expr = parse_expression();
   if (scanner->next_is(TOKEN_ID))
   {
