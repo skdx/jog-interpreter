@@ -1,5 +1,8 @@
 #include "jog.h"
 
+#include <sstream>
+using namespace std;
+
 //=============================================================================
 //  JogObject
 //=============================================================================
@@ -189,7 +192,7 @@ Ref<JogCmd> JogCmd::cast_to_type( JogTypeInfo* to_type )
 
       if (cur_type->instance_of(jog_type_manager.type_number))
       {
-        char* m_name;
+        const char* m_name;
         if (to_type == jog_type_manager.type_real64) m_name = "doubleValue";
         else if (to_type == jog_type_manager.type_real32) m_name = "floatValue";
         else if (to_type == jog_type_manager.type_int64)  m_name = "longValue";
@@ -318,10 +321,54 @@ Ref<JogCmd> JogCmd::box( JogTypeInfo* as_type )
 //=============================================================================
 //  JogVM
 //=============================================================================
+JogVM::JogVM() : max_object_bytes(1024*1024), cur_object_bytes(0), 
+          all_objects(NULL), user_context(NULL)
+{
+  random_seed = time(0);
+  ostringstream buffer;
+  buffer << random_seed;
+  JogReader::random_seed = buffer.str();
+
+  jog_type_manager.init();
+  JogMethodInfo::next_method_id = 1;
+
+  jog_context = NULL;
+  instruction_stack_limit = instruction_stack + JOG_INSTRUCTION_STACK_CAPACITY;
+  instruction_stack_ptr   = instruction_stack_limit;
+  data_stack_limit        = data_stack + JOG_DATA_STACK_CAPACITY;
+  data_stack_ptr          = data_stack_limit;
+  ref_stack_limit         = ref_stack + JOG_REF_STACK_CAPACITY;
+  ref_stack_ptr           = ref_stack_limit;
+  frame_stack_limit       = frames + JOG_FRAME_STACK_CAPACITY;
+  frame_ptr               = frame_stack_limit;
+  add_native_handlers();
+}
+
+void JogVM::reset()
+{
+  jog_type_manager.clear();
+  types.clear();
+  delete_all_objects();
+}
+
 void JogVM::parse( string filename )
 {
-  printf( "Parsing %s\n", filename.c_str() );
+  //printf( "Parsing %s\n", filename.c_str() );
   Ref<JogParser> parser = new JogParser(filename.c_str());
+  parse(parser);
+}
+
+void JogVM::parse( string filename, string content )
+{
+  //printf( "Parsing %s\n", filename.c_str() );
+  Ref<JogParser> parser = new JogParser( new JogScanner( 
+        new JogReader( filename.c_str(), content.c_str(), content.length() )
+      ) );
+  parse(parser);
+}
+
+void JogVM::parse( Ref<JogParser> parser )
+{
   JogTypeInfo* type = parser->parse_type_def();
   while (type)
   {
@@ -377,12 +424,12 @@ void JogVM::run( const char* main_class_name )
 //JogTypeInfo* debug_type = JogTypeInfo::find("Test");
 //if (debug_type) debug_type->print_members();  //DEBUG
 
-  add_native_handlers();
-
   // Call static initializer blocks
   for (int i=0; i<types.count; ++i)
   {
     JogTypeInfo* type = types[i];
+    if (type->is_template()) continue;
+
     for (int j=0; j<type->static_initializers.count; ++j)
     {
       JogMethodInfo* m = *(type->static_initializers[j]);

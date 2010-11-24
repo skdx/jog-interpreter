@@ -385,6 +385,8 @@ int jog_is_digit( int ch, int base );
 
 struct JogReader : RefCounted
 {
+  static string random_seed;
+
   Ref<ASCIIString> filename;
   int   line, column;
 
@@ -597,7 +599,7 @@ struct JogScanner : RefCounted
   JogScanner( Ref<JogReader> reader );
   JogScanner( RefList<JogToken>& tokens );
 
-  void set_up_keywords();
+  static void set_up_keywords();
   void consume_ws();
   bool has_another();
   Ref<JogToken> peek();
@@ -947,6 +949,8 @@ class JogNativeMethodLookup : public map<Ref<JogString>,JogNativeMethodHandler,J
     }
 };
 
+struct JogParser;
+
 struct JogVM : RefCounted
 {
   int max_object_bytes;  // set as desired
@@ -975,26 +979,18 @@ struct JogVM : RefCounted
 
   ArrayList<JogTypeInfo*> types;
 
-  JogVM() : max_object_bytes(1024*1024), cur_object_bytes(0), all_objects(NULL)
-  {
-    instruction_stack_limit = instruction_stack + JOG_INSTRUCTION_STACK_CAPACITY;
-    instruction_stack_ptr   = instruction_stack_limit;
-    data_stack_limit        = data_stack + JOG_DATA_STACK_CAPACITY;
-    data_stack_ptr          = data_stack_limit;
-    ref_stack_limit         = ref_stack + JOG_REF_STACK_CAPACITY;
-    ref_stack_ptr           = ref_stack_limit;
-    frame_stack_limit       = frames + JOG_FRAME_STACK_CAPACITY;
-    frame_ptr               = frame_stack_limit;
-  }
+  void* user_context;
+  int   random_seed;
 
+  JogVM();
   ~JogVM() { reset(); }
 
-  void reset()
-  {
-    delete_all_objects();
-  }
+  void reset();
 
   void parse( string filename );
+  void parse( string filename, string content );
+  void parse( Ref<JogParser> parser );
+
   void compile();
   void run( const char* main_class_name );
   void add_native_handlers();
@@ -1606,6 +1602,18 @@ struct JogTypeManager
 
   JogTypeManager()
   {
+    init();
+  }
+
+  ~JogTypeManager()
+  {
+    clear();
+  }
+
+  void init()
+  {
+    clear();
+
     Ref<JogReader> reader = new JogReader( "[INTERNAL]", NULL, 0 );
     Ref<JogToken>  t = new JogToken( reader, 0, 0 );
     int quals = JOG_QUALIFIER_PRIMITIVE;
@@ -1637,6 +1645,35 @@ struct JogTypeManager
     type_int8->element_size    = 1;
     type_char->element_size    = 2;
     type_boolean->element_size = 1;
+  }
+
+  void clear()
+  {
+    type_lookup.clear();
+    dispatch_id_lookup.clear();
+
+    type_void = NULL;
+    type_real64 = NULL;
+    type_real32 = NULL;
+    type_int64 = NULL;
+    type_int32 = NULL;
+    type_int16 = NULL;
+    type_int8 = NULL;
+    type_char = NULL;
+    type_boolean = NULL;
+    type_number = NULL;
+    type_real64_wrapper = NULL;;
+    type_real32_wrapper = NULL;
+    type_int64_wrapper = NULL;
+    type_int32_wrapper = NULL;
+    type_int16_wrapper = NULL;
+    type_int8_wrapper = NULL;
+    type_char_wrapper = NULL;
+    type_boolean_wrapper = NULL;
+    type_object = NULL;
+    type_null = NULL;
+    type_string = NULL;
+    type_char_array = NULL;
   }
 
   JogTypeInfo* must_find_type( const char* name );

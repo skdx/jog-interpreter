@@ -8,7 +8,15 @@ int main()
 
   try
   {
-    vm->parse("test.java");
+    vm->parse("libraries/jog/jog_stdlib.java");
+
+    vm->parse( "test.java" );
+    /*
+    vm->parse( "hello.java",
+        "public class Hello { Hello(){ println(\"Hello World!\\n\"); } }"
+        );
+    */
+
     vm->compile();
     vm->run("Test");
     //while (scanner->peek()->type != TOKEN_EOF)

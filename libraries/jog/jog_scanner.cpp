@@ -1,5 +1,7 @@
 #include "jog.h"
 
+string JogReader::random_seed;
+
 const char* token_name_lookup[] =
 {
   "???", "EOF", "EOL", "Identifier", "char", 
@@ -97,8 +99,9 @@ JogReader::JogReader( Ref<JogReader> existing )
 void JogReader::init( const char* filename, const char* data, int size )
 {
   // Copy and clean the data - convert tabs to 2 spaces each, getting
-  // rid of cursor return (13) but leaving line feed (10), and converting
-  // \uABCD sequences into single 16-bit values.
+  // rid of cursor return (13) but leaving line feed (10), converting
+  // \uABCD sequences into single 16-bit values, and converting
+  // $SEED into the random seed string.
   this->filename = new ASCIIString(filename);
   int   extra_chars = 1;
 
@@ -112,6 +115,12 @@ void JogReader::init( const char* filename, const char* data, int size )
       case 13:   --extra_chars; break;
       case '\\':
         if (count>=5 && *(src+1)=='u') extra_chars -= 5;
+        break;
+      case '$':
+        if (count>=4 && src[1]=='S' && src[2]=='E' && src[3]=='E' && src[4]=='D')
+        {
+          extra_chars += (random_seed.length() - 5);
+        }
     }
   }
 
@@ -131,8 +140,10 @@ void JogReader::init( const char* filename, const char* data, int size )
         *(++dest) = ' ';
         *(++dest) = ' ';
         break;
+
       case 13: 
         break;
+
       case '\\':
         if (count >= 5 && *(src+1)=='u')
         {
@@ -148,6 +159,23 @@ void JogReader::init( const char* filename, const char* data, int size )
           *(++dest) = ch;
         }
         break;
+
+      case '$':
+        if (count>=4 && src[1]=='S' && src[2]=='E' && src[3]=='E' && src[4]=='D')
+        {
+          for (unsigned int i=0; i<random_seed.length(); ++i)
+          {
+            *(++dest) = random_seed[i];
+          }
+          count -= 4;
+          src += 4;
+        }
+        else
+        {
+          *(++dest) = ch;
+        }
+        break;
+
       default:
         *(++dest) = ch;
     }

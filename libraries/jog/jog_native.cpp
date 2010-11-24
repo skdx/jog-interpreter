@@ -15,7 +15,57 @@ using namespace std;
 //=============================================================================
 //  Math
 //=============================================================================
-void Math__floor__double( JogVM* vm )
+static void Math__cos__double( JogVM* vm )
+{
+  double rads = vm->pop_double();
+  vm->pop_frame();
+  vm->push( cos(rads) );
+}
+
+static void Math__sin__double( JogVM* vm )
+{
+  double rads = vm->pop_double();
+  vm->pop_frame();
+  vm->push( sin(rads) );
+}
+
+static void Math__tan__double( JogVM* vm )
+{
+  double rads = vm->pop_double();
+  vm->pop_frame();
+  vm->push( tan(rads) );
+}
+
+static void Math__acos__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( acos(n) );
+}
+
+static void Math__asin__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( asin(n) );
+}
+
+static void Math__atan__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( atan(n) );
+}
+
+static void Math__atan2__double_double( JogVM* vm )
+{
+  double x = vm->pop_double();
+  double y = vm->pop_double();
+  vm->pop_frame();
+  vm->push( atan2(y,x) );
+}
+
+static void Math__floor__double( JogVM* vm )
 {
   double n = vm->pop_double();
   vm->pop_frame();
@@ -25,33 +75,12 @@ void Math__floor__double( JogVM* vm )
 //=============================================================================
 //  PrintWriter
 //=============================================================================
-void PrintWriter__print__boolean( JogVM* vm )
-{
-  if (vm->pop_int()) printf("true");
-  else               printf("false");
-}
-
-void PrintWriter__print__char( JogVM* vm )
+static void PrintWriter__print__char( JogVM* vm )
 {
   putchar( vm->pop_int() );
 }
 
-void PrintWriter__print__double( JogVM* vm )
-{
-  printf("%lf",vm->pop_double());
-}
-
-void PrintWriter__print__int( JogVM* vm )
-{
-  printf("%d",vm->pop_int());
-}
-
-void PrintWriter__print__long( JogVM* vm )
-{
-  printf("%lld",vm->pop_long());
-}
-
-void PrintWriter__print__String( JogVM* vm )
+static void PrintWriter__print__String( JogVM* vm )
 {
   JogObject* str = *(vm->pop_ref());
   if (str == NULL)
@@ -80,7 +109,7 @@ void PrintWriter__print__String( JogVM* vm )
 //=============================================================================
 //  System
 //=============================================================================
-void System__currentTimeMillis( JogVM* vm )
+static void System__currentTimeMillis( JogVM* vm )
 {
   vm->pop_frame();
 
@@ -106,12 +135,17 @@ void System__currentTimeMillis( JogVM* vm )
 
 void JogVM::add_native_handlers()
 {
+  add_native_handler( "Math::cos(double)", Math__cos__double );
+  add_native_handler( "Math::sin(double)", Math__sin__double );
+  add_native_handler( "Math::tan(double)", Math__tan__double );
+  add_native_handler( "Math::acos(double)", Math__acos__double );
+  add_native_handler( "Math::asin(double)", Math__asin__double );
+  add_native_handler( "Math::atan(double)", Math__atan__double );
+  add_native_handler( "Math::atan2(double,double)", Math__atan2__double_double );
+
   add_native_handler( "Math::floor(double)", Math__floor__double );
-  add_native_handler( "PrintWriter::print(boolean)", PrintWriter__print__boolean );
+
   add_native_handler( "PrintWriter::print(char)", PrintWriter__print__char );
-  add_native_handler( "PrintWriter::print(double)", PrintWriter__print__double );
-  add_native_handler( "PrintWriter::print(int)", PrintWriter__print__int );
-  add_native_handler( "PrintWriter::print(long)", PrintWriter__print__long );
   add_native_handler( "PrintWriter::print(String)", PrintWriter__print__String );
   add_native_handler( "System::currentTimeMillis()", System__currentTimeMillis );
 }
