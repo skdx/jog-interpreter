@@ -31,9 +31,19 @@ class Test
     st += "World";
     println( st == st2 );
     println( st.equals(st2) );
-    for(;;)
+    for (char ch='A'; ch<='C'; ++ch)
     {
+      for (int i=1; i<=10; ++i)
+      {
+        if (i == 2) continue;
+        println(""+ch+i);
+        if (i == 3) break;
+      }
     }
+  }
+
+  void fn( int i )
+  {
   }
 
   void holla$SEED() { println("woo"); }

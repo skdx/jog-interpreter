@@ -646,6 +646,8 @@ struct JogCmd : RefCounted
 
   virtual bool is_literal() { return false; }
   virtual bool is_literal_int() { return false; }
+  virtual bool is_loop() { return false; }
+  virtual void on_continue( JogVM* vm ) { }
 
   virtual JogTypeInfo* reinterpret_as_type() { return NULL; }
   JogTypeInfo* as_type();
@@ -1198,7 +1200,8 @@ struct JogVM : RefCounted
             "Timeout - your program is taking too long.  Do you have an infinite loop?" );
       }
 
-      (*(instruction_stack_ptr++)).command->execute(this);
+      JogCmd* cmd = (instruction_stack_ptr++)->command;
+      cmd->execute(this);
     }
   }
 
@@ -2098,15 +2101,26 @@ struct JogCmdIf : JogCmdControlStructure
   void execute( JogVM* vm );
 };
 
+struct JogCmdLoop : JogCmdControlStructure
+{
+  int node_type() { return __LINE__; }
 
-struct JogCmdWhile : JogCmdControlStructure
+  JogCmdLoop( Ref<JogToken> t ) : JogCmdControlStructure(t)
+  {
+  }
+
+  bool is_loop() { return true; }
+};
+
+
+struct JogCmdWhile : JogCmdLoop
 {
   int node_type() { return __LINE__; }
 
   Ref<JogCmd> expression;
 
   JogCmdWhile( Ref<JogToken> t, Ref<JogCmd> expression ) 
-    : JogCmdControlStructure(t), expression(expression)
+    : JogCmdLoop(t), expression(expression)
   {
   }
 
@@ -2123,9 +2137,11 @@ struct JogCmdWhile : JogCmdControlStructure
   void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
+
+  void on_continue( JogVM* vm );
 };
 
-struct JogCmdFor : JogCmdControlStructure
+struct JogCmdFor : JogCmdLoop
 {
   int node_type() { return __LINE__; }
 
@@ -2135,7 +2151,7 @@ struct JogCmdFor : JogCmdControlStructure
 
   JogCmdFor( Ref<JogToken> t, 
       Ref<JogCmd> initialization, Ref<JogCmd> condition, Ref<JogCmd> var_mod ) 
-    : JogCmdControlStructure(t), 
+    : JogCmdLoop(t), 
       initialization(initialization), condition(condition), var_mod(var_mod)
   {
   }
@@ -2155,6 +2171,50 @@ struct JogCmdFor : JogCmdControlStructure
   Ref<JogCmd> resolve();
 
   void on_push( JogVM* vm );
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdBreak : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdBreak( Ref<JogToken> t ) : JogCmd(t)
+  {
+  }
+
+  JogTypeInfo* type() { return NULL; }
+
+  void print()
+  {
+    printf("break");
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm ) { }
+
+  void execute( JogVM* vm );
+};
+
+struct JogCmdContinue : JogCmd
+{
+  int node_type() { return __LINE__; }
+
+  JogCmdContinue( Ref<JogToken> t ) : JogCmd(t)
+  {
+  }
+
+  JogTypeInfo* type() { return NULL; }
+
+  void print()
+  {
+    printf("continue");
+  }
+
+  Ref<JogCmd> resolve() { return this; }
+
+  void on_push( JogVM* vm ) { }
 
   void execute( JogVM* vm );
 };

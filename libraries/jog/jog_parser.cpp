@@ -555,6 +555,20 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
     return *loop;
   }
 
+  if (scanner->consume(TOKEN_BREAK))
+  {
+    Ref<JogCmd> cmd = new JogCmdBreak(t);
+    if (require_semicolon) scanner->must_consume_semicolon(t);
+    return cmd;
+  }
+
+  if (scanner->consume(TOKEN_CONTINUE))
+  {
+    Ref<JogCmd> cmd = new JogCmdContinue(t);
+    if (require_semicolon) scanner->must_consume_semicolon(t);
+    return cmd;
+  }
+
   if (scanner->consume(TOKEN_ASSERT))
   {
     scanner->must_consume( TOKEN_LPAREN, "Opening '(' expected." );

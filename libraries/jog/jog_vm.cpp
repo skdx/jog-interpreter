@@ -139,6 +139,11 @@ void JogCmdWhile::execute( JogVM* vm )
   }
 }
 
+void JogCmdWhile::on_continue( JogVM* vm )
+{
+  vm->push( *expression );
+}
+
 void JogCmdFor::on_push( JogVM* vm ) 
 { 
   vm->push( *condition );
@@ -163,6 +168,40 @@ void JogCmdFor::execute( JogVM* vm )
       vm->push( *body );
     }
   }
+}
+
+void JogCmdBreak::execute( JogVM* vm )
+{
+  JogInstruction* cur   = vm->instruction_stack_ptr;
+  JogInstruction* limit = vm->frame_ptr->instruction_stack_ptr;
+  while (cur < limit)
+  {
+    if (cur->command->is_loop())
+    {
+      while (vm->instruction_stack_ptr++ < cur) { }
+      return;
+    }
+    ++cur;
+  }
+  throw t->error( "'break' is not inside a loop." );
+}
+
+void JogCmdContinue::execute( JogVM* vm )
+{
+  JogInstruction* cur   = vm->instruction_stack_ptr;
+  JogInstruction* limit = vm->frame_ptr->instruction_stack_ptr;
+  while (cur < limit)
+  {
+    if (cur->command->is_loop())
+    {
+      --vm->instruction_stack_ptr;
+      while (++vm->instruction_stack_ptr < cur) { }
+      cur->command->on_continue(vm);
+      return;
+    }
+    ++cur;
+  }
+  throw t->error( "'continue' is not inside a loop." );
 }
 
 void JogCmdReturnVoid::on_push( JogVM* vm )
