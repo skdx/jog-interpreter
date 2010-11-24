@@ -979,7 +979,7 @@ struct JogVM : RefCounted
 
   JogNativeMethodLookup native_methods;
 
-  ArrayList<JogTypeInfo*> types;
+  ArrayList<JogTypeInfo*> parsed_types;
 
   void*  user_context;
   int    timeout_seconds;  // default 0 (no timeout)

@@ -347,7 +347,7 @@ JogVM::JogVM() : max_object_bytes(1024*1024), cur_object_bytes(0),
 void JogVM::reset()
 {
   jog_type_manager.clear();
-  types.clear();
+  parsed_types.clear();
   delete_all_objects();
 }
 
@@ -372,7 +372,7 @@ void JogVM::parse( Ref<JogParser> parser )
   JogTypeInfo* type = parser->parse_type_def();
   while (type)
   {
-    types.add( type );
+    parsed_types.add( type );
     type = parser->parse_type_def();
   }
 }
@@ -401,10 +401,10 @@ void JogVM::compile()
   jog_type_manager.type_char_wrapper->prep();
   jog_type_manager.type_boolean_wrapper->prep();
 
-  for (int i=0; i<types.count; ++i)
+  for (int i=0; i<parsed_types.count; ++i)
   {
-    if (types[i]->is_template()) continue;
-    types[i]->resolve();
+    if (parsed_types[i]->is_template()) continue;
+    parsed_types[i]->resolve();
   }
 }
 
@@ -425,9 +425,9 @@ void JogVM::run( const char* main_class_name )
 //if (debug_type) debug_type->print_members();  //DEBUG
 
   // Call static initializer blocks
-  for (int i=0; i<types.count; ++i)
+  for (int i=0; i<parsed_types.count; ++i)
   {
-    JogTypeInfo* type = types[i];
+    JogTypeInfo* type = parsed_types[i];
     if (type->is_template()) continue;
 
     for (int j=0; j<type->static_initializers.count; ++j)
