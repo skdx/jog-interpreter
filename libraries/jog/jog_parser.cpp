@@ -533,8 +533,17 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
   {
     scanner->must_consume( TOKEN_LPAREN, "Opening '(' expected." );
     Ref<JogCmd> init_expr = parse_statement();
-    Ref<JogCmd> condition = parse_expression();
-    scanner->must_consume( TOKEN_SEMICOLON, "';' expected." );
+
+    Ref<JogCmd> condition;
+    if (scanner->consume(TOKEN_SEMICOLON))
+    {
+      condition = new JogCmdLiteralBoolean( t, true );
+    }
+    else
+    {
+      condition = parse_expression();
+      scanner->must_consume( TOKEN_SEMICOLON, "';' expected." );
+    }
     Ref<JogCmd> var_mod = parse_statement(false);
     scanner->must_consume( TOKEN_RPAREN, "Closing ')' expected." );
     Ref<JogCmdFor> loop = new JogCmdFor( t, init_expr, condition, var_mod );

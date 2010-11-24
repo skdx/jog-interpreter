@@ -31,6 +31,9 @@ class Test
     st += "World";
     println( st == st2 );
     println( st.equals(st2) );
+    for(;;)
+    {
+    }
   }
 
   void holla$SEED() { println("woo"); }

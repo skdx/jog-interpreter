@@ -142,7 +142,7 @@ void JogCmdWhile::execute( JogVM* vm )
 void JogCmdFor::on_push( JogVM* vm ) 
 { 
   vm->push( *condition );
-  vm->push( *initialization );
+  if (*initialization) vm->push( *initialization );
 }
 
 void JogCmdFor::execute( JogVM* vm ) 
@@ -153,7 +153,7 @@ void JogCmdFor::execute( JogVM* vm )
   {
     vm->run_this_again();
     vm->push( *condition );
-    vm->push( *var_mod );
+    if (*var_mod) vm->push( *var_mod );
   }
   else
   {

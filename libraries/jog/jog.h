@@ -979,8 +979,10 @@ struct JogVM : RefCounted
 
   ArrayList<JogTypeInfo*> types;
 
-  void* user_context;
-  int   random_seed;
+  void*  user_context;
+  int    timeout_seconds;  // default 0 (no timeout)
+
+  int    random_seed;
 
   JogVM();
   ~JogVM() { reset(); }
@@ -1185,9 +1187,17 @@ struct JogVM : RefCounted
 
   void execute()
   {
+    JogInt64 timeout_target = timeout_seconds;
+    if (timeout_target) timeout_target += time(0);
+
     while (instruction_stack_ptr != instruction_stack_limit)
     {
-      //printf( "line %d\n", (*(instruction_stack_ptr)).command->node_type() );
+      if (timeout_target && timeout_target <= time(0))
+      {
+        throw instruction_stack_ptr->command->t->error(
+            "Timeout - your program is taking too long.  Do you have an infinite loop?" );
+      }
+
       (*(instruction_stack_ptr++)).command->execute(this);
     }
   }

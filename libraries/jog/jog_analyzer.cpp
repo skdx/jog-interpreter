@@ -3804,10 +3804,10 @@ Ref<JogCmd> JogCmdFor::resolve()
 {
   int old_local_count = jog_context->locals.count;
 
-  initialization = initialization->resolve()->discarding_result();
+  if (*initialization) initialization = initialization->resolve()->discarding_result();
   condition = condition->resolve();
   condition->require_boolean();
-  var_mod = var_mod->resolve()->discarding_result();
+  if (*var_mod) var_mod = var_mod->resolve()->discarding_result();
 
   if (*body) body = body->resolve();
 

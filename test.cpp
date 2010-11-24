@@ -18,6 +18,7 @@ int main()
     */
 
     vm->compile();
+    //vm->timeout_seconds = 5;
     vm->run("Test");
     //while (scanner->peek()->type != TOKEN_EOF)
     //{
