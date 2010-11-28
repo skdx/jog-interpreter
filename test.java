@@ -9,13 +9,13 @@
 //     - System.out.print/println for primitive types
 //     - Arrays (1D)
 //     - Strings
-//     - Generics (actually templates are used)
+//     - Generics (actually templates are used, but it looks the same)
+//     - Autoboxing
 //
 //   TODO
 //     - 'for-each'
 //     - Interfaces
 //     - Multidimensional Arrays
-//     - Autoboxing
 //     - Respect private/protected access qualifiers
 //     - Maybe inner classes, maybe exceptions
 
@@ -24,35 +24,28 @@ class Test
 
   Test()
   {
-    String st2 = "H-World";
-    println( st2 );
-    String st = "H";
-    st += "-";
-    st += "World";
-    println( st == st2 );
-    println( st.equals(st2) );
-    for (char ch='A'; ch<='C'; ++ch)
-    {
-      for (int i=1; i<=10; ++i)
-      {
-        if (i == 2) continue;
-        println(""+ch+i);
-        if (i == 3) break;
-      }
-    }
+    juice( new Apple() );
+    juice( new Orange() );
   }
 
-  void fn( int i )
-  {
-  }
-
-  void holla$SEED() { println("woo"); }
+  void juice( Fruit f ) { println( f.juice() ); }
 }
 
-class Bag<DataType>
+interface Fruit
 {
-  DataType n;
+  public String juice();
+}
 
-  public String toString() { return "Bag!"; }
+class Apple implements Fruit
+{
+  public String juice()
+  {
+    return "apple juice";
+  }
+}
+
+class Orange implements Fruit
+{
+  public String juice() { return "orange juice"; }
 }
 

@@ -375,6 +375,7 @@ void JogVM::parse( Ref<JogParser> parser )
     parsed_types.add( type );
     type = parser->parse_type_def();
   }
+  parser->scanner->must_consume( TOKEN_EOF, "Unrecognized code." );
 }
 
 void JogVM::compile()

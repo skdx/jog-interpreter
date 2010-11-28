@@ -185,6 +185,11 @@ void JogTypeInfo::organize()
     base_class = jog_type_manager.type_object;
   }
 
+  if (base_class && is_class() && base_class->is_interface())
+  {
+    throw t->error( "Use 'implements' instead of 'extends' for base interface types." );
+  }
+
   if (base_class) base_class->organize();
 
   for (int i=0; i<interfaces.count; ++i) interfaces[i]->organize();
@@ -227,6 +232,16 @@ void JogTypeInfo::prep()
     for (int i=0; i<base_class->methods.count; ++i)
     {
       add( base_class->methods[i] );
+    }
+  }
+
+  for (int iface=0; iface<interfaces.count; ++iface)
+  {
+    JogTypeInfo* base_interface = interfaces[iface];
+    base_interface->prep();
+    for (int i=0; i<base_interface->methods.count; ++i)
+    {
+      add( base_interface->methods[i] );
     }
   }
 
@@ -274,6 +289,11 @@ void JogTypeInfo::prep()
 
   for (int i=0; i<methods.count; ++i)
   {
+    if (methods[i]->is_abstract() && !this->is_abstract() && this->is_class())
+    {
+      throw t->error( "This class inherits one or more 'abstract' methods.  You must either define those methods or declare this class 'abstract'." );
+    }
+
     methods[i]->organize();
       // Ensures types are defined, sets up class hierarchy, and creates method
       // signatures.

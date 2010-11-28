@@ -1273,11 +1273,12 @@ struct JogStatementList : JogCmdList
 #define JOG_QUALIFIER_STATIC        8
 #define JOG_QUALIFIER_NATIVE       16
 #define JOG_QUALIFIER_CLASS        32
-#define JOG_QUALIFIER_PRIMITIVE    64
-#define JOG_QUALIFIER_CONSTRUCTOR 128
-#define JOG_QUALIFIER_ABSTRACT    256
+#define JOG_QUALIFIER_INTERFACE    64
+#define JOG_QUALIFIER_PRIMITIVE   128
+#define JOG_QUALIFIER_CONSTRUCTOR 256
+#define JOG_QUALIFIER_ABSTRACT    512
 
-#define JOG_QUALIFIER_REFERENCE  (JOG_QUALIFIER_CLASS)
+#define JOG_QUALIFIER_REFERENCE  (JOG_QUALIFIER_CLASS | JOG_QUALIFIER_INTERFACE)
 
 
 //=============================================================================
@@ -1535,6 +1536,8 @@ struct JogTypeInfo : RefCounted
 
   bool instance_of( JogTypeInfo* base_type );
 
+  bool is_class() { return (qualifiers & JOG_QUALIFIER_CLASS) != 0; }
+  bool is_interface() { return (qualifiers & JOG_QUALIFIER_INTERFACE) != 0; }
   bool is_primitive() { return (qualifiers & JOG_QUALIFIER_PRIMITIVE) != 0; }
   bool is_reference() { return (qualifiers & JOG_QUALIFIER_REFERENCE) != 0; }
   bool is_abstract() { return (qualifiers & JOG_QUALIFIER_ABSTRACT) != 0; }

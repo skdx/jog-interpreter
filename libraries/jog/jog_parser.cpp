@@ -16,11 +16,16 @@ JogTypeInfo* JogParser::parse_type_def()
   {
     return parse_type_def( t, quals|JOG_QUALIFIER_CLASS, "Class name expected." );
   }
+  else if (scanner->consume(TOKEN_INTERFACE))
+  {
+    return parse_type_def( t, quals|JOG_QUALIFIER_INTERFACE|JOG_QUALIFIER_ABSTRACT, 
+        "Interface name expected." );
+  }
   else
   {
     if (quals)
     {
-      throw t->error( "Keyword 'class' expected." );
+      throw t->error( "Keyword 'class' or 'interface' expected." );
     }
   }
 
@@ -79,10 +84,24 @@ void JogParser::parse_type_def( Ref<JogToken> t, JogTypeInfo* type )
     type->base_class = parse_data_type();
   }
 
+  Ref<JogToken> t2 = scanner->peek();
+  if (scanner->consume(TOKEN_IMPLEMENTS))
+  {
+    if (type->is_interface()) throw t2->error( "One interface cannot 'extend' but not 'implement' another." );
+    type->interfaces.add( parse_data_type() );
+    while (scanner->consume(TOKEN_COMMA))
+    {
+      type->interfaces.add( parse_data_type() );
+    }
+  }
+
   // make one empty static initializer for setting up initial class property values
-  type->static_initializers.add(
-    new JogMethodInfo( t, JOG_QUALIFIER_STATIC, type, NULL, new JogString("static") ) 
-    );
+  if (type->is_class() && !type->is_template())
+  {
+    type->static_initializers.add(
+        new JogMethodInfo( t, JOG_QUALIFIER_STATIC, type, NULL, new JogString("static") ) 
+        );
+  }
 
   scanner->must_consume(TOKEN_LCURLY,"Opening '{' expected.");
 
@@ -227,6 +246,8 @@ bool JogParser::parse_member( JogTypeInfo* type )
   if (quals == JOG_QUALIFIER_STATIC && scanner->next_is(TOKEN_LCURLY))
   {
     // static initializer block
+    if (type->is_interface()) throw t->error( "Static initialization block not allowed here." );
+
     Ref<JogMethodInfo> m = new JogMethodInfo( t, quals, type, NULL, new JogString("static") );
     this_method = *m;
     type->static_initializers.add(*m);
@@ -255,6 +276,7 @@ bool JogParser::parse_member( JogTypeInfo* type )
       {
         throw t->error( "Constructors cannot be 'static'." );
       }
+      if (type->is_interface()) throw t->error( "Constructor not allowed here." );
       quals |= JOG_QUALIFIER_CONSTRUCTOR;
       Ref<JogMethodInfo> m = new JogMethodInfo( t, quals, type, NULL, new JogString("<init>") );
       this_method = *m;
@@ -292,9 +314,16 @@ bool JogParser::parse_member( JogTypeInfo* type )
       throw t2->error( "Constructors should not specify a return type." );
     }
 
-  
+    if (type->is_interface()) quals |= JOG_QUALIFIER_ABSTRACT;
+
     // Other methods
     Ref<JogMethodInfo> m = new JogMethodInfo( t, quals, type, data_type, name );
+
+    if (type->is_interface() && m->is_static())
+    {
+      throw t->error( "Interface methods cannot be 'static'." );
+    }
+
     this_method = *m;
     parse_params(m);
     if (m->is_static())
@@ -308,6 +337,7 @@ bool JogParser::parse_member( JogTypeInfo* type )
 
     if (quals & JOG_QUALIFIER_NATIVE)
     {
+      if (type->is_interface()) throw t->error( "Interface methods cannot be 'native'." );
       scanner->must_consume(TOKEN_SEMICOLON,"Expected ';' at end of native method declaration." );
     }
     else if (scanner->consume(TOKEN_SEMICOLON))
@@ -323,6 +353,11 @@ bool JogParser::parse_member( JogTypeInfo* type )
     }
     else
     {
+      if (m->is_abstract())
+      {
+        throw m->t->error( "An abstract method cannot have a body (end with \";\" instead of \"{...}\")." );
+      }
+
       scanner->must_consume( TOKEN_LCURLY, "Opening '{' expected." );
       while ( !scanner->next_is(TOKEN_RCURLY) )
       {
@@ -346,6 +381,11 @@ bool JogParser::parse_member( JogTypeInfo* type )
     if (quals & JOG_QUALIFIER_NATIVE)
     {
       throw t->error( "The 'native' qualifier cannot be used for properties." );
+    }
+
+    if (type->is_interface())
+    {
+      throw t->error( "Interfaces cannot have properties." );
     }
 
     // property
