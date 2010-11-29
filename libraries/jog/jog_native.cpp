@@ -15,6 +15,14 @@ using namespace std;
 //=============================================================================
 //  Math
 //=============================================================================
+static void Math__abs__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  if (n >= 0) vm->push( n );
+  else        vm->push( -n );
+}
+
 static void Math__cos__double( JogVM* vm )
 {
   double rads = vm->pop_double();
@@ -71,6 +79,14 @@ static void Math__floor__double( JogVM* vm )
   vm->pop_frame();
   vm->push( floor(n) );
 }
+
+static void Math__sqrt__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( sqrt(n) );
+}
+
 
 //=============================================================================
 //  PrintWriter
@@ -135,6 +151,7 @@ static void System__currentTimeMillis( JogVM* vm )
 
 void JogVM::add_native_handlers()
 {
+  add_native_handler( "Math::abs(double)", Math__abs__double );
   add_native_handler( "Math::cos(double)", Math__cos__double );
   add_native_handler( "Math::sin(double)", Math__sin__double );
   add_native_handler( "Math::tan(double)", Math__tan__double );
@@ -144,6 +161,8 @@ void JogVM::add_native_handlers()
   add_native_handler( "Math::atan2(double,double)", Math__atan2__double_double );
 
   add_native_handler( "Math::floor(double)", Math__floor__double );
+
+  add_native_handler( "Math::sqrt(double)", Math__sqrt__double );
 
   add_native_handler( "PrintWriter::print(char)", PrintWriter__print__char );
   add_native_handler( "PrintWriter::print(String)", PrintWriter__print__String );

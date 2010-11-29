@@ -57,6 +57,11 @@ class Math
   static Random random_gen = new Random();
   static double PI = acos(-1.0);
 
+  native static double abs( double n );
+  static float abs( float n ) { return (float) abs(n); }
+  static long  abs( long n ) { return (long) abs(n); }
+  static int   abs( int n ) { return (int) abs(n); }
+
   native static double cos( double radians );
   native static double sin( double radians );
   native static double tan( double radians );
@@ -64,6 +69,8 @@ class Math
   native static double asin( double n );
   native static double atan( double slope );
   native static double atan2( double y, double x );
+
+  native static double sqrt( double n );
 
   native static double floor( double n );
   static double random() { return random_gen.nextDouble(); }

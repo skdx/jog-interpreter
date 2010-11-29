@@ -24,8 +24,7 @@ class Test
 
   Test()
   {
-    juice( new Apple() );
-    juice( new Orange() );
+    println( Math.sqrt(-3*-3) );
   }
 
   void juice( Fruit f ) { println( f.juice() ); }
