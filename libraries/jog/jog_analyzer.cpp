@@ -73,6 +73,21 @@ JogTypeInfo* JogTypeManager::find_common_type( JogToken* t,
   if (type1->instance_of(type2)) return type2;
   if (type2->instance_of(type1)) return type1;
 
+  /*
+  if (type1->is_primitive())
+  {
+    if (type2 == jog_type_manager.type_object) return jog_type_manager.type_object;
+    if (type2 == jog_type_manager.type_string) return jog_type_manager.type_string;
+    if (type2->instance_of(jog_type_manager.type_number)) return jog_type_manager.type_number;
+  }
+  else if (type2->is_primitive())
+  {
+    if (type1 == jog_type_manager.type_object) return jog_type_manager.type_object;
+    if (type1 == jog_type_manager.type_string) return jog_type_manager.type_string;
+    if (type1->instance_of(jog_type_manager.type_number)) return jog_type_manager.type_number;
+  }
+  */
+
   throw t->error( "Types are unrelated." );
 }
 
@@ -1066,6 +1081,30 @@ Ref<JogCmd> JogCmdRightXShiftAssign::resolve()
 Ref<JogCmd> JogCmdRightShiftAssign::resolve()
 { 
   return location->resolve_op_assign( TOKEN_SHR_ASSIGN, NULL, rhs ); 
+}
+
+Ref<JogCmd> JogCmdConditional::resolve()
+{ 
+  condition = condition->resolve();
+  true_value = true_value->resolve();
+  false_value = false_value->resolve();
+
+  condition->require_boolean();
+  JogTypeInfo* common_type = jog_type_manager.find_common_type( *t, *true_value, *false_value );
+  /*
+  if (common_type->is_reference())
+  {
+    true_value = true_value->box(common_type);
+    false_value = false_value->box(common_type);
+  }
+  else
+  */
+  {
+    true_value = true_value->cast_to_type(common_type)->resolve();
+    false_value = false_value->cast_to_type(common_type)->resolve();
+  }
+
+  return this;
 }
 
 Ref<JogCmd> JogCmdLogicalOr::resolve()

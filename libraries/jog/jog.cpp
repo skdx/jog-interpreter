@@ -213,7 +213,7 @@ Ref<JogCmd> JogCmd::cast_to_type( JogTypeInfo* to_type )
     {
       // Possibly box primitive type.
       if (to_type == cur_type->wrapper_type() || to_type == jog_type_manager.type_object
-          || to_type == jog_type_manager.type_number)
+          || to_type->instance_of(jog_type_manager.type_number))
       {
         Ref<JogCmdList> args = new JogCmdList(t);
         args->add( this );
@@ -303,12 +303,28 @@ JogTypeInfo* JogCmd::require_primitive()
 Ref<JogCmd> JogCmd::box( JogTypeInfo* as_type )
 {
   JogTypeInfo* this_type = type();
-  JogTypeInfo* wrapper_type = this_type->wrapper_type();
-  if (wrapper_type) wrapper_type->resolve();
+  if (this_type->instance_of(jog_type_manager.type_number)) return this;
 
-  if (this_type->is_primitive() 
+  JogTypeInfo* wrapper_type = this_type->wrapper_type();
+  if (wrapper_type) 
+  {
+    wrapper_type->resolve();
+  }
+  /*
+  else
+  {
+    StringBuilder buffer;
+    buffer.print( "[Internal] Cannot box type '" );
+    this_type->name->print(buffer);
+    buffer.print( "'." );
+    Ref<JogError> err = new JogError( (const char*) buffer.to_string() );
+    throw err;
+  }
+  */
+
+  if (this_type->is_primitive()  && wrapper_type
       && (wrapper_type == as_type || as_type == jog_type_manager.type_object
-        || as_type == jog_type_manager.type_number))
+        || as_type->instance_of(jog_type_manager.type_number)))
   {
     Ref<JogCmdList> args = new JogCmdList(t);
     args->add( this );

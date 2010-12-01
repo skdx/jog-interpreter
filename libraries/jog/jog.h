@@ -2551,6 +2551,11 @@ struct JogCmdConditional : JogCmd
     false_value->print();
     printf(")");
   }
+
+  Ref<JogCmd> resolve();
+
+  void on_push( JogVM* vm );
+  void execute( JogVM* vm );
 };
 
 struct JogCmdBinary : JogCmd

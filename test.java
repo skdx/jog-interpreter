@@ -11,20 +11,21 @@
 //     - Strings
 //     - Generics (actually templates are used, but it looks the same)
 //     - Autoboxing
+//     - Interfaces
 //
 //   TODO
 //     - 'for-each'
-//     - Interfaces
 //     - Multidimensional Arrays
 //     - Respect private/protected access qualifiers
 //     - Maybe inner classes, maybe exceptions
 
 class Test
 {
-
   Test()
   {
-    println( Math.sqrt(-3*-3) );
+    println( 3 > 5 ? "totally true" : "falsivity" );
+    // Ternary conditional is working, but needs a bit more work still to enable
+    // autoboxing.
   }
 
   void juice( Fruit f ) { println( f.juice() ); }

@@ -224,6 +224,17 @@ void JogCmdBinary::on_push( JogVM* vm )
   vm->push( *lhs );
 }
 
+void JogCmdConditional::on_push( JogVM* vm )
+{
+  vm->push( *condition );
+}
+
+void JogCmdConditional::execute( JogVM* vm )
+{
+  if (vm->pop_data()) vm->push( *true_value );
+  else vm->push( *false_value );
+}
+
 void JogCmdLogicalOr::execute( JogVM* vm )
 {
   JogInt64 b = vm->pop_data();
