@@ -43,6 +43,7 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
   // Type name
   Ref<JogString> name = scanner->must_read_id( missing_name_mesg );
   JogTypeInfo* type = JogTypeInfo::create( t, quals, name );
+  parsed_types.add( type );
 
   // Template type (Jog implements templates instead of generics).
   if (scanner->consume(TOKEN_LT))
@@ -105,8 +106,21 @@ void JogParser::parse_type_def( Ref<JogToken> t, JogTypeInfo* type )
 
   scanner->must_consume(TOKEN_LCURLY,"Opening '{' expected.");
 
-  while (parse_member(type))
+
+  while (true)
   {
+    scanner->set_mark();
+    try
+    {
+      bool result = parse_member(type);
+      scanner->clear_mark();
+      if ( !result ) break;
+    }
+    catch (Ref<JogError>)
+    {
+      scanner->rewind_to_mark();
+      parse_type_def();
+    }
   }
 
   scanner->must_consume(TOKEN_RCURLY,"Closing '}' expected.");
@@ -224,7 +238,7 @@ int JogParser::parse_member_qualifiers()
       continue;
     }
 
-    // static
+    // native
     if (scanner->consume(TOKEN_NATIVE))
     {
       quals |= JOG_QUALIFIER_NATIVE;

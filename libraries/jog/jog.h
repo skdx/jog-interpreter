@@ -7781,6 +7781,7 @@ struct JogParser : RefCounted
 {
   Ref<JogScanner> scanner;
   JogMethodInfo*  this_method;
+  ArrayList<JogTypeInfo*> parsed_types;
 
   JogParser( const char* filename );
   JogParser( Ref<JogScanner> scanner );

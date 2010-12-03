@@ -388,10 +388,17 @@ void JogVM::parse( Ref<JogParser> parser )
   JogTypeInfo* type = parser->parse_type_def();
   while (type)
   {
-    parsed_types.add( type );
     type = parser->parse_type_def();
   }
   parser->scanner->must_consume( TOKEN_EOF, "Unrecognized code." );
+
+  for (int i=0; i<parser->parsed_types.count; ++i)
+  {
+    JogTypeInfo* type = parser->parsed_types[i];
+    if (type->is_template()) continue;
+
+    parsed_types.add( parser->parsed_types[i] );
+  }
 }
 
 void JogVM::compile()
@@ -420,7 +427,6 @@ void JogVM::compile()
 
   for (int i=0; i<parsed_types.count; ++i)
   {
-    if (parsed_types[i]->is_template()) continue;
     parsed_types[i]->resolve();
   }
 }
@@ -445,7 +451,6 @@ void JogVM::run( const char* main_class_name )
   for (int i=0; i<parsed_types.count; ++i)
   {
     JogTypeInfo* type = parsed_types[i];
-    if (type->is_template()) continue;
 
     for (int j=0; j<type->static_initializers.count; ++j)
     {

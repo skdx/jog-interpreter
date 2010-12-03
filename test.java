@@ -12,6 +12,7 @@
 //     - Generics (actually templates are used, but it looks the same)
 //     - Autoboxing
 //     - Interfaces
+//     - Nested classes (kind of - their names are still global)
 //
 //   TODO
 //     - 'for-each'
@@ -26,26 +27,24 @@ class Test
     println( 3 > 5 ? "totally true" : "falsivity" );
     // Ternary conditional is working, but needs a bit more work still to enable
     // autoboxing.
+
+    overloadTest();
+
+    new Whatever();
   }
 
-  void juice( Fruit f ) { println( f.juice() ); }
-}
-
-interface Fruit
-{
-  public String juice();
-}
-
-class Apple implements Fruit
-{
-  public String juice()
+  class Whatever
   {
-    return "apple juice";
+    Whatever() { println("Boo!"); }
   }
-}
 
-class Orange implements Fruit
-{
-  public String juice() { return "orange juice"; }
-}
+	void overloadTest()
+	{
+	  test( 5, 6 );  // prints: Two ints!
+	  test( 5.0, 6.0 );  // prints: Two doubles!
+	  test( 5, 6.0 );  // prints: Two doubles!
+	}
 
+	void test( int a, int b ) { println( "Two ints!" ); }
+	void test( double a, double b ) { println( "Two doubles!" ); }
+}
