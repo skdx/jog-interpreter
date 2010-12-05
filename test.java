@@ -22,46 +22,22 @@
 
 class Test
 {
-  Test()
-  {
-    println( 3 > 5 ? "totally true" : "falsivity" );
-    // Ternary conditional is working, but needs a bit more work still to enable
-    // autoboxing.
-
-    overloadTest();
-
-    new Whatever();
-
-    int[][] nums = new int[3][2];
-    nums[0][0] = 10;
-    nums[0][1] = 11;
-    nums[1][0] = 12;
-    nums[1][1] = 13;
-    nums[2][0] = 14;
-    nums[2][1] = 15;
-    println( nums[0][0] );
-    println( nums[0][1] );
-    println( nums[1][0] );
-    println( nums[1][1] );
-    println( nums[2][0] );
-    println( nums[2][1] );
-    int[] subset = nums[1];
-    println( subset[0] );
-    println( subset[1] );
-  }
-
-  class Whatever
-  {
-    Whatever() { println("Boo!"); }
-  }
-
-	void overloadTest()
+	Test()
 	{
-	  test( 5, 6 );  // prints: Two ints!
-	  test( 5.0, 6.0 );  // prints: Two doubles!
-	  test( 5, 6.0 );  // prints: Two doubles!
-	}
+		int[][] nums = {{1,2,3},{4,5,6}};
+    for (int j=0; j<nums.length; ++j)
+    {
+      for (int i=0; i<nums[0].length; ++i)
+      {
+        if (i > 0) print(",");
+        print( nums[j][i] );
+      }
+      println();
+    }
+  }
 
-	void test( int a, int b ) { println( "Two ints!" ); }
-	void test( double a, double b ) { println( "Two doubles!" ); }
+  int random100()
+  {
+    return (int)(Math.random()*100);
+  }
 }

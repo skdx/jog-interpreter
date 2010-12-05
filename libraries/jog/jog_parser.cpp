@@ -116,10 +116,10 @@ void JogParser::parse_type_def( Ref<JogToken> t, JogTypeInfo* type )
       scanner->clear_mark();
       if ( !result ) break;
     }
-    catch (Ref<JogError>)
+    catch (Ref<JogError> err)
     {
       scanner->rewind_to_mark();
-      parse_type_def();
+      if ( !parse_type_def() ) throw err;
     }
   }
 
@@ -501,7 +501,7 @@ Ref<JogCmd> JogParser::parse_initial_value( JogTypeInfo* of_type )
   {
     if (scanner->next_is(TOKEN_LCURLY))
     {
-      return parse_literal_array(of_type,-1);
+      return parse_literal_array(of_type);
     }
     else
     {
@@ -1097,7 +1097,7 @@ Ref<JogCmd> JogParser::parse_array_decl( Ref<JogToken> t, JogTypeInfo* array_typ
     {
       throw scanner->peek()->error( "Literal array definition expected since no array size was given, e.g. \"new int[]{3,4,5}\"." );
     }
-    return parse_literal_array(array_type,dim_expr.count);
+    return parse_literal_array(array_type);
   }
 
   Ref<JogCmdNewArray> new_array = new JogCmdNewArray( t, array_type, dim_expr[0] );
@@ -1333,23 +1333,33 @@ Ref<JogCmdList> JogParser::parse_args( bool required )
   return args;
 }
 
-Ref<JogCmd> JogParser::parse_literal_array( JogTypeInfo* of_type, int dimensions )
+Ref<JogCmd> JogParser::parse_literal_array( JogTypeInfo* of_type )
 {
   Ref<JogToken> t = scanner->read();  // open '{'
-
-  if (dimensions > 1) 
-  {
-    throw t->error ( "[Internal] parse_literal_array() does not yet handle literal multidimensional arrays." );
-  }
-
 
   Ref<JogCmdList> terms = new JogCmdList(t);
   if ( !scanner->consume(TOKEN_RCURLY) )
   {
-    terms->add( parse_expression() );
-    while (scanner->consume(TOKEN_COMMA))
+    bool first = true;
+    while (first || scanner->consume(TOKEN_COMMA))
     {
-      terms->add( parse_expression() );
+      first = false;
+      if (scanner->next_is(TOKEN_LCURLY))
+      {
+        // nested literal array
+        Ref<JogString> element_type_name = new JogString(of_type->name);
+        element_type_name->count -= 2;
+        if (element_type_name->get(-1) != ']')
+        {
+          throw scanner->peek()->error( "Array type does not support this many dimensions." );
+        }
+        JogTypeInfo* element_type = JogTypeInfo::reference(scanner->peek(),element_type_name);
+        terms->add( parse_literal_array(element_type) );
+      }
+      else
+      {
+        terms->add( parse_expression() );
+      }
     }
     scanner->must_consume(TOKEN_RCURLY,"',' or '}' expected.");
   }

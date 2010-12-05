@@ -7854,7 +7854,7 @@ struct JogParser : RefCounted
   Ref<JogCmd> parse_term();
   Ref<JogCmd> parse_construct();
   Ref<JogCmdList> parse_args( bool required );
-  Ref<JogCmd> parse_literal_array( JogTypeInfo* of_type, int dimensions );
+  Ref<JogCmd> parse_literal_array( JogTypeInfo* of_type );
 };
 
 //=============================================================================
