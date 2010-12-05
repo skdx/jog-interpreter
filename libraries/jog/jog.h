@@ -1205,6 +1205,24 @@ struct JogVM : RefCounted
     }
   }
 
+  void execute_until( JogInstruction* target_pos )
+  {
+    JogInt64 timeout_target = timeout_seconds;
+    if (timeout_target) timeout_target += time(0);
+
+    while (instruction_stack_ptr < target_pos)
+    {
+      if (timeout_target && timeout_target <= time(0))
+      {
+        throw instruction_stack_ptr->command->t->error(
+            "Timeout - your program is taking too long.  Do you have an infinite loop?" );
+      }
+
+      JogCmd* cmd = (instruction_stack_ptr++)->command;
+      cmd->execute(this);
+    }
+  }
+
   void call_native( JogMethodInfo* m );
     // internal use
 
@@ -1496,6 +1514,7 @@ struct JogTypeInfo : RefCounted
   static JogTypeInfo* create( Ref<JogToken> t, int qualifiers, Ref<JogString> name );
   static JogTypeInfo* create( Ref<JogToken> t, int qualifiers, const char* name );
   static JogTypeInfo* reference( Ref<JogToken> t, Ref<JogString> name );
+  static JogTypeInfo* reference_array( Ref<JogToken> t, Ref<JogString> name, int dimensions );
   static JogTypeInfo* find( Ref<JogString> name );
   static JogTypeInfo* find( const char* name ) { return find(new JogString(name)); }
 
@@ -3137,10 +3156,12 @@ struct JogCmdNewArray : JogCmd
 {
   JogTypeInfo* of_type;
   Ref<JogCmd>  size_expr;
+  Ref<JogCmd>  element_expr;
   bool         resolved;
 
-  JogCmdNewArray( Ref<JogToken> t, JogTypeInfo* of_type, Ref<JogCmd> size_expr )
-    : JogCmd(t), of_type(of_type), size_expr(size_expr), resolved(false)
+  JogCmdNewArray( Ref<JogToken> t, JogTypeInfo* of_type, Ref<JogCmd> size_expr,
+      Ref<JogCmd> element_expr=NULL )
+    : JogCmd(t), of_type(of_type), size_expr(size_expr), element_expr(element_expr), resolved(false)
   {
   }
 
@@ -3153,6 +3174,11 @@ struct JogCmdNewArray : JogCmd
     printf("[");
     size_expr->print();
     printf("]");
+    if (*element_expr)
+    {
+      printf("<-");
+      element_expr->print();
+    }
   }
 
   Ref<JogCmd> resolve();
@@ -7828,7 +7854,7 @@ struct JogParser : RefCounted
   Ref<JogCmd> parse_term();
   Ref<JogCmd> parse_construct();
   Ref<JogCmdList> parse_args( bool required );
-  Ref<JogCmd> parse_literal_array( JogTypeInfo* of_type );
+  Ref<JogCmd> parse_literal_array( JogTypeInfo* of_type, int dimensions );
 };
 
 //=============================================================================

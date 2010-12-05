@@ -13,10 +13,10 @@
 //     - Autoboxing
 //     - Interfaces
 //     - Nested classes (kind of - their names are still global)
+//     - Multidimensional Arrays
 //
 //   TODO
 //     - 'for-each'
-//     - Multidimensional Arrays
 //     - Respect private/protected access qualifiers
 //     - Maybe inner classes, maybe exceptions
 
@@ -31,6 +31,23 @@ class Test
     overloadTest();
 
     new Whatever();
+
+    int[][] nums = new int[3][2];
+    nums[0][0] = 10;
+    nums[0][1] = 11;
+    nums[1][0] = 12;
+    nums[1][1] = 13;
+    nums[2][0] = 14;
+    nums[2][1] = 15;
+    println( nums[0][0] );
+    println( nums[0][1] );
+    println( nums[1][0] );
+    println( nums[1][1] );
+    println( nums[2][0] );
+    println( nums[2][1] );
+    int[] subset = nums[1];
+    println( subset[0] );
+    println( subset[1] );
   }
 
   class Whatever

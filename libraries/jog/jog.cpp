@@ -692,6 +692,16 @@ JogTypeInfo* JogTypeInfo::reference( Ref<JogToken> t, Ref<JogString> name )
   }
 }
 
+JogTypeInfo* JogTypeInfo::reference_array( Ref<JogToken> t, Ref<JogString> name, int dimensions )
+{
+  Ref<JogString> new_name = new JogString(name);
+  for (int i=0; i<dimensions; ++i)
+  {
+    new_name->add( "[]" );
+  }
+  return reference( t, new_name );
+}
+
 JogTypeInfo* JogTypeInfo::find( Ref<JogString> name )
 {
   JogTypeLookup::iterator entry = jog_type_manager.type_lookup.find(name);

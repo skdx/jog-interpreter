@@ -337,7 +337,24 @@ void JogCmdNewArray::execute( JogVM* vm )
   {
     throw error( "Illegal negative size." ); 
   }
-  vm->push( of_type->create_array(vm,count) );
+
+  JogRef array = of_type->create_array(vm,count);
+  vm->push( array );
+
+  if (*element_expr)
+  {
+    // Push and execute another element_expr to store in each element
+    // of this array.
+    JogInstruction* original_pos = vm->instruction_stack_ptr;
+    for (int i=0; i<count; ++i)
+    {
+      vm->push( *element_expr );
+      vm->execute_until(original_pos);
+
+      JogRef new_element = vm->pop_ref();
+      ((JogObject**) array->data)[i] = *new_element;
+    }
+  }
 }
 
 void JogCmdLiteralArray::on_push( JogVM* vm )

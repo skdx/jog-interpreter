@@ -501,7 +501,7 @@ Ref<JogCmd> JogParser::parse_initial_value( JogTypeInfo* of_type )
   {
     if (scanner->next_is(TOKEN_LCURLY))
     {
-      return parse_literal_array(of_type);
+      return parse_literal_array(of_type,-1);
     }
     else
     {
@@ -1064,24 +1064,60 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
 Ref<JogCmd> JogParser::parse_array_decl( Ref<JogToken> t, JogTypeInfo* array_type )
 {
   // Requires at least one specified dim ("[5]") OR a {literal,list} following.
-  Ref<JogString> new_name = new JogString(array_type->name);
-  new_name->add( "[]" );
-  array_type = JogTypeInfo::reference( array_type->t, new_name );
-  scanner->must_consume( TOKEN_LBRACKET, "'[' expected." );
 
-  if (scanner->consume(TOKEN_RBRACKET))
+  // Read the dimensions - [] or [expr]
+  bool saw_empty = false;
+  bool dim_specified = false;
+  RefList<JogCmd> dim_expr;
+  while (scanner->consume(TOKEN_LBRACKET))
+  {
+    if (scanner->consume(TOKEN_RBRACKET))
+    {
+      saw_empty = true;
+      dim_expr.add(NULL);
+    }
+    else
+    {
+      if (saw_empty)
+      {
+        throw scanner->peek()->error ("Cannot specify array dimension after omitting length of previous dimension.");
+      }
+      dim_specified = true;
+      dim_expr.add( parse_expression() );
+      scanner->must_consume( TOKEN_RBRACKET, "']' expected." );
+    }
+  }
+ 
+  Ref<JogString> base_name = array_type->name;
+  array_type = JogTypeInfo::reference_array( array_type->t, base_name, dim_expr.count );
+
+  if ( !dim_specified )
   {
     if ( !scanner->next_is(TOKEN_LCURLY) )
     {
       throw scanner->peek()->error( "Literal array definition expected since no array size was given, e.g. \"new int[]{3,4,5}\"." );
     }
-    return parse_literal_array(array_type);
+    return parse_literal_array(array_type,dim_expr.count);
   }
 
-  Ref<JogCmd> expr = parse_expression();
-  scanner->must_consume( TOKEN_RBRACKET, "']' expected." );
-  return new JogCmdNewArray( t, array_type, expr );
+  Ref<JogCmdNewArray> new_array = new JogCmdNewArray( t, array_type, dim_expr[0] );
+  if (dim_expr.count > 1)
+  {
+    Ref<JogCmdNewArray> cur = new_array;
+    for (int i=1; i<dim_expr.count; ++i)
+    {
+      if (dim_expr[i] == NULL) break;
+      JogTypeInfo* element_type = JogTypeInfo::reference_array( dim_expr[i]->t, base_name,
+          dim_expr.count-i );
+      Ref<JogCmdNewArray> element_expr = new JogCmdNewArray( t, element_type, dim_expr[i] );
+      cur->element_expr = *element_expr;
+      cur = *element_expr;
+    }
+  }
+
+  return *new_array;
 }
+
 
 // ++, --, ., (), []
 Ref<JogCmd> JogParser::parse_postfix_unary()
@@ -1297,9 +1333,15 @@ Ref<JogCmdList> JogParser::parse_args( bool required )
   return args;
 }
 
-Ref<JogCmd> JogParser::parse_literal_array( JogTypeInfo* of_type )
+Ref<JogCmd> JogParser::parse_literal_array( JogTypeInfo* of_type, int dimensions )
 {
   Ref<JogToken> t = scanner->read();  // open '{'
+
+  if (dimensions > 1) 
+  {
+    throw t->error ( "[Internal] parse_literal_array() does not yet handle literal multidimensional arrays." );
+  }
+
 
   Ref<JogCmdList> terms = new JogCmdList(t);
   if ( !scanner->consume(TOKEN_RCURLY) )

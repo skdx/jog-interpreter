@@ -3993,6 +3993,11 @@ Ref<JogCmd> JogCmdNewArray::resolve()
     throw error( "'int' value expected." );
   }
 
+  if (*element_expr)
+  {
+    element_expr = element_expr->resolve();
+  }
+
   return this;
 };
 
