@@ -122,7 +122,14 @@ void JogParser::parse_type_def( Ref<JogToken> t, JogTypeInfo* type )
     catch (Ref<JogError> err)
     {
       scanner->rewind_to_mark();
-      if ( !parse_type_def() ) throw err;
+      try
+      {
+        if ( !parse_type_def() ) throw err;
+      }
+      catch (Ref<JogError>)
+      {
+        throw err;  // throw the original error
+      }
     }
   }
 

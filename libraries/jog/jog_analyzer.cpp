@@ -256,7 +256,10 @@ void JogTypeInfo::prep()
     base_interface->prep();
     for (int i=0; i<base_interface->methods.count; ++i)
     {
-      add( base_interface->methods[i] );
+      if ( base_interface->methods[i]->is_abstract() )
+      {
+        add( base_interface->methods[i] );
+      }
     }
   }
 
@@ -306,7 +309,11 @@ void JogTypeInfo::prep()
   {
     if (methods[i]->is_abstract() && !this->is_abstract() && this->is_class())
     {
-      throw t->error( "This class inherits one or more 'abstract' methods.  You must either define those methods or declare this class 'abstract'." );
+      StringBuilder buffer;
+      buffer.print( "This class inherits one or more 'abstract' methods, including " );
+      methods[i]->signature->print(buffer);
+      buffer.print(".  You must either override all abstract methods or declare this class 'abstract'." );
+      throw t->error( buffer.to_string() );
     }
 
     methods[i]->organize();
@@ -458,6 +465,8 @@ void JogTypeInfo::add( Ref<JogMethodInfo> m )
       {
         throw m->t->error( "Return type incompatible with inherited method." );
       }
+
+      if (m->is_abstract()) return;
 
       if ( !existing->is_inherited(this) )
       {

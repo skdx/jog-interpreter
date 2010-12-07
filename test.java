@@ -34,9 +34,17 @@ class Test
     */
 
     Horse horse = new Horse("Zippy Chippy");
+    Transportation transport = horse;
+    Animal animal = horse;
 
     // Incorrect result - will fix shortly.
-    println(horse.toString());
+    println(horse);
+    println(transport);
+
+    horse.speak();
+    animal.speak();
+    println( transport.speed() );
+    println( horse.speed() );
   }
 }
 
@@ -46,10 +54,12 @@ public class Animal
 
   public Animal( String name ) { this.name = name; }
   public String toString() { return name; }
+  public void speak() { println("Neigh!"); }
 }
 
 public interface Transportation
 {
+  public double speed();
 }
 
 public class Horse extends Animal implements Transportation
@@ -58,5 +68,7 @@ public class Horse extends Animal implements Transportation
   {
     super(name);
   }
+
+  public double speed() { return 30.0; }
 }
 
