@@ -70,6 +70,8 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
     }
     scanner->clear_mark();
 
+    type->interfaces.clear();
+
     return type;
   }
 
@@ -586,7 +588,35 @@ Ref<JogCmd> JogParser::parse_statement( bool require_semicolon )
   if (scanner->consume(TOKEN_FOR))
   {
     scanner->must_consume( TOKEN_LPAREN, "Opening '(' expected." );
-    Ref<JogCmd> init_expr = parse_statement();
+
+    Ref<JogCmd> init_expr;
+
+    scanner->set_mark();
+    init_expr = parse_statement(false);
+    if (scanner->next_is(TOKEN_COLON))
+    {
+      // for-each
+      scanner->rewind_to_mark();
+      JogTypeInfo* local_type = parse_data_type();
+      Ref<JogString> local_name = scanner->must_read_id( "Identifier expected." );
+
+      scanner->must_consume( TOKEN_COLON,"':' expected here." );
+      Ref<JogCmd> iterable_expr = parse_expression();
+      scanner->must_consume( TOKEN_RPAREN, "Closing ')' expected." );
+
+      Ref<JogCmdForEach> loop = new JogCmdForEach( t, local_type, local_name, iterable_expr );
+      if (scanner->next_is(TOKEN_SEMICOLON))
+      {
+        throw scanner->peek()->error( "Semicolon not allowed here; use \"{}\" to denote an empty body." );
+      }
+      loop->body = parse_statement();
+      return *loop;
+    }
+    else
+    {
+      scanner->clear_mark();
+      scanner->must_consume( TOKEN_SEMICOLON, "';' expected." );
+    }
 
     Ref<JogCmd> condition;
     if (scanner->consume(TOKEN_SEMICOLON))

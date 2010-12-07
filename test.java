@@ -24,20 +24,26 @@ class Test
 {
 	Test()
 	{
-		int[][] nums = {{1,2,3},{4,5,6}};
-    for (int j=0; j<nums.length; ++j)
-    {
-      for (int i=0; i<nums[0].length; ++i)
-      {
-        if (i > 0) print(",");
-        print( nums[j][i] );
-      }
-      println();
-    }
-  }
-
-  int random100()
-  {
-    return (int)(Math.random()*100);
+    ArrayList<Integer> nums = new ArrayList<Integer>();
+    nums.add(12);
+    nums.add(7);
+    nums.add(20);
+    nums.add(10);
+    for (int n : nums) println(n);
   }
 }
+
+class Alpha
+{
+  void report() { println("Alpha"); }
+}
+
+class Beta extends Alpha
+{
+  void report() 
+  { 
+    super.report();
+    println("Beta"); 
+  }
+}
+

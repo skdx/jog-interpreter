@@ -3875,6 +3875,50 @@ Ref<JogCmd> JogCmdFor::resolve()
   return this;
 }
 
+Ref<JogCmd> JogCmdForEach::resolve()
+{
+  Ref<JogString> iter_name = new JogString("_");
+  iter_name->add( local_name );
+  iter_name->add( "_iterator" );
+
+  Ref<JogCmd> create_iter_call = new JogCmdMemberAccess( t,
+        iterable_expr,
+        new JogCmdMethodCall( t, new JogString("iterator"), new JogCmdList(t) )
+      );
+  create_iter_call = create_iter_call->resolve();
+  JogTypeInfo* iter_type = create_iter_call->require_value();
+
+  Ref<JogCmdBlock> commands = new JogCmdBlock(t);
+
+  Ref<JogCmdLocalVarDeclaration> iter_decl;
+  iter_decl = new JogCmdLocalVarDeclaration( t, iter_type, iter_name );
+  iter_decl->initial_value = create_iter_call;
+  commands->add( *iter_decl );
+
+  Ref<JogCmdLocalVarDeclaration> assign_local;
+  assign_local = new JogCmdLocalVarDeclaration( t, local_type, local_name );
+  assign_local->initial_value = new JogCmdMemberAccess( t,
+        new JogCmdIdentifier(t,iter_name),
+        new JogCmdMethodCall( t, new JogString("next"), new JogCmdList(t) )
+      );
+
+  Ref<JogCmdWhile> while_loop = new JogCmdWhile( t,
+      new JogCmdMemberAccess( t,
+        new JogCmdIdentifier(t,iter_name),
+        new JogCmdMethodCall( t, new JogString("hasNext"), new JogCmdList(t) )
+      ) );
+
+  Ref<JogCmdBlock> while_body = new JogCmdBlock(t);
+  while_body->add( assign_local->discarding_result() );
+  while_body->add( body );
+
+  while_loop->body = *while_body;
+
+  commands->add( *while_loop );
+
+  return commands->resolve();
+}
+
 Ref<JogCmd> JogCmdMethodCall::resolve()
 {
   if (name->equals("this"))

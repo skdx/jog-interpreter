@@ -12,6 +12,7 @@
 #include <string.h>
 #include <string>
 #include <map>
+#include <ctime>
 using namespace std;
 
 #include "ref_counted.h"
@@ -1187,14 +1188,19 @@ struct JogVM : RefCounted
     --instruction_stack_ptr;
   }
 
+  JogInt64 cur_time()
+  {
+    return time(0);
+  }
+
   void execute()
   {
     JogInt64 timeout_target = timeout_seconds;
-    if (timeout_target) timeout_target += time(0);
 
+    if (timeout_target) timeout_target += cur_time();
     while (instruction_stack_ptr != instruction_stack_limit)
     {
-      if (timeout_target && timeout_target <= time(0))
+      if (timeout_target && timeout_target <= cur_time())
       {
         throw instruction_stack_ptr->command->t->error(
             "Timeout - your program is taking too long.  Do you have an infinite loop?" );
@@ -1208,11 +1214,11 @@ struct JogVM : RefCounted
   void execute_until( JogInstruction* target_pos )
   {
     JogInt64 timeout_target = timeout_seconds;
-    if (timeout_target) timeout_target += time(0);
+    if (timeout_target) timeout_target += cur_time();
 
     while (instruction_stack_ptr < target_pos)
     {
-      if (timeout_target && timeout_target <= time(0))
+      if (timeout_target && timeout_target <= cur_time())
       {
         throw instruction_stack_ptr->command->t->error(
             "Timeout - your program is taking too long.  Do you have an infinite loop?" );
@@ -2058,6 +2064,12 @@ struct JogCmdBlock : JogCmd
 
   JogTypeInfo* type() { return NULL; }
 
+  JogCmdBlock* add( Ref<JogCmd> cmd )
+  { 
+    statements->add(cmd);
+    return this;
+  }
+
   void print()
   {
     printf("{\n");
@@ -2195,6 +2207,36 @@ struct JogCmdFor : JogCmdLoop
   void on_push( JogVM* vm );
 
   void execute( JogVM* vm );
+};
+
+struct JogCmdForEach : JogCmdLoop
+{
+  int node_type() { return __LINE__; }
+
+  JogTypeInfo*   local_type;
+  Ref<JogString> local_name;
+  Ref<JogCmd>    iterable_expr;
+
+  JogCmdForEach( Ref<JogToken> t, 
+      JogTypeInfo* local_type, Ref<JogString> local_name, Ref<JogCmd> iterable_expr ) 
+    : JogCmdLoop(t), 
+      local_type(local_type), local_name(local_name), iterable_expr(iterable_expr)
+  {
+  }
+
+  void print()
+  {
+    printf("for (");
+    local_type->name->print();
+    printf(" ");
+    local_name->print();
+    printf(" : ");
+    iterable_expr->print();
+    printf(")\n");
+    JogCmdControlStructure::print();
+  }
+
+  Ref<JogCmd> resolve();
 };
 
 struct JogCmdBreak : JogCmd

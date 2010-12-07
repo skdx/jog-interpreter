@@ -340,7 +340,7 @@ Ref<JogCmd> JogCmd::box( JogTypeInfo* as_type )
 JogVM::JogVM() : max_object_bytes(1024*1024), cur_object_bytes(0), 
           all_objects(NULL), user_context(NULL), timeout_seconds(0)
 {
-  random_seed = time(0);
+  random_seed = (int) time(0);
   ostringstream buffer;
   buffer << random_seed;
   JogReader::random_seed = buffer.str();

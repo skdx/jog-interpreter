@@ -21,6 +21,11 @@ class ArrayList<DataType>
     data = new DataType[capacity];
   }
 
+  Iterator<DataType> iterator()
+  {
+    return new ArrayListIterator<DataType>(this);
+  }
+
   int size() { return size; }
 
   void ensureCapacity( int min_capacity )
@@ -47,6 +52,31 @@ class ArrayList<DataType>
     assert( index>=0 && index<size, "ArrayList get() index out of bounds." );
     return data[index];
   }
+}
+
+//=============================================================================
+//  Iterator<DataType>
+//=============================================================================
+interface Iterator<DataType>
+{
+  boolean  hasNext();
+  DataType next();
+  void remove();
+}
+
+class ArrayListIterator<DataType> implements Iterator<DataType>
+{
+  ArrayList<DataType> list;
+  int next_index;
+
+  ArrayListIterator( ArrayList<DataType> list )
+  {
+    this.list = list;
+  }
+
+  boolean  hasNext() { return next_index < list.size(); }
+  DataType next() { return list.get(next_index++); }
+  void remove() { }
 }
 
 //=============================================================================
