@@ -12,39 +12,51 @@
 //     - Generics (actually templates are used, but it looks the same)
 //     - Autoboxing
 //     - Interfaces
-//     - Nested classes (kind of - their names are still global)
+//     - Inner classes (kind of - their names are still global)
 //     - Multidimensional Arrays
+//     - 'for-each'
 //
 //   TODO
-//     - 'for-each'
 //     - Respect private/protected access qualifiers
-//     - Maybe inner classes, maybe exceptions
+//     - Exceptions
 
 class Test
 {
 	Test()
 	{
+    /*
     ArrayList<Integer> nums = new ArrayList<Integer>();
     nums.add(12);
     nums.add(7);
     nums.add(20);
     nums.add(10);
     for (int n : nums) println(n);
-    (new Beta<Integer>()).report();
+    */
+
+    Horse horse = new Horse("Zippy Chippy");
+
+    // Incorrect result - will fix shortly.
+    println(horse.toString());
   }
 }
 
-class Alpha<DataType>
+public class Animal
 {
-  void report() { println("Alpha"); }
+  protected String name;
+
+  public Animal( String name ) { this.name = name; }
+  public String toString() { return name; }
 }
 
-class Beta<DataType> extends Alpha<DataType>
+public interface Transportation
 {
-  void report() 
-  { 
-    super.report();
-    println("Beta"); 
+}
+
+public class Horse extends Animal implements Transportation
+{
+  public Horse( String name )
+  {
+    super(name);
   }
 }
 
