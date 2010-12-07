@@ -30,15 +30,16 @@ class Test
     nums.add(20);
     nums.add(10);
     for (int n : nums) println(n);
+    (new Beta<Integer>()).report();
   }
 }
 
-class Alpha
+class Alpha<DataType>
 {
   void report() { println("Alpha"); }
 }
 
-class Beta extends Alpha
+class Beta<DataType> extends Alpha<DataType>
 {
   void report() 
   { 

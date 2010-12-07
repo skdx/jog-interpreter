@@ -70,6 +70,7 @@ JogTypeInfo* JogParser::parse_type_def( Ref<JogToken> t, int quals, const char* 
     }
     scanner->clear_mark();
 
+    type->base_class = NULL;
     type->interfaces.clear();
 
     return type;
