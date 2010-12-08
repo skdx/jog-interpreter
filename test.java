@@ -24,27 +24,23 @@ class Test
 {
 	Test()
 	{
-    /*
-    ArrayList<Integer> nums = new ArrayList<Integer>();
-    nums.add(12);
-    nums.add(7);
-    nums.add(20);
-    nums.add(10);
-    for (int n : nums) println(n);
-    */
-
-    Horse horse = new Horse("Zippy Chippy");
-    Transportation transport = horse;
-    Animal animal = horse;
-
-    // Incorrect result - will fix shortly.
-    println(horse);
-    println(transport);
-
-    horse.speak();
-    animal.speak();
-    println( transport.speed() );
-    println( horse.speed() );
+    String st = " Happy Days ";
+    st = st.trim();
+    println( st );
+    println( st.toLowerCase() );
+    println( st.toUpperCase() );
+    println( st.indexOf('D') );
+    println( st.substring(st.indexOf('D')) );
+    println( st.indexOf("Da") );
+    println( st.substring(st.indexOf("Da")) );
+    println( st.indexOf('p') );
+    println( st.lastIndexOf('p') );
+    println( st.startsWith("appy") );
+    println( st.endsWith("Day") );
+    println( st.replaceFirst("p","b") );
+    println( "abc".compareTo("abc") );
+    println( "abe".compareToIgnoreCase("ABE") );
+    println( "xyz".charAt(1) );
   }
 
   native static public void printSound( float[] data );

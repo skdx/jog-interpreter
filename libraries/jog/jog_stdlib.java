@@ -593,7 +593,6 @@ class String
     return 0;
   }
 
-  /*
   boolean endsWith( String suffix )
   {
     int i = indexOf( suffix );
@@ -601,13 +600,12 @@ class String
 
     return (i == data.length - suffix.data.length);
   }
-  */
 
-  int   hashCode() { return hash_code; }
+  int hashCode() { return hash_code; }
 
-  int   indexOf( int ch ) { return indexOf( ch, 0 ); }
+  int indexOf( int ch ) { return indexOf( ch, 0 ); }
 
-  int   indexOf( int ch, int i1 )
+  int indexOf( int ch, int i1 )
   {
     int count = data.length;
     for (int i=i1; i<count; ++i)
@@ -617,16 +615,15 @@ class String
     return -1;
   }
 
-  /*
-  int   indexOf( String st ) { return indexOf( st, 0 ); }
+  int indexOf( String st ) { return indexOf( st, 0 ); }
 
-  int   indexOf( String st, int i1 )
+  int indexOf( String st, int i1 )
   {
     int count = data.length - (st.data.length - 1);
     int ch1 = st.data[0];
     for (int i=i1; i<count; ++i)
     {
-      if (data[i] == ch)
+      if (data[i] == ch1)
       {
         if (regionMatches( false, i, st, 0, st.data.length ))
         {
@@ -641,41 +638,275 @@ class String
 
   boolean isEmpty() { return data.length == 0; }
 
-  int   lastIndexOf(int ch)
-  int   lastIndexOf(int ch, int fromIndex)
-  int   lastIndexOf(String str)
-  int   lastIndexOf(String str, int fromIndex)
-  int   offsetByCodePoints(int index, int codePointOffset)
-  boolean   regionMatches(boolean ignoreCase, int toffset, String other, int ooffset, int len)
-  boolean   regionMatches(int toffset, String other, int ooffset, int len)
-  String   replace(char oldChar, char newChar)
-  String   replace(CharSequence target, CharSequence replacement)
-  String   replaceAll(String regex, String replacement)
-  String   replaceFirst(String regex, String replacement)
-  String[]   split(String regex)
-  String[]   split(String regex, int limit)
-  boolean   startsWith(String prefix)
-  boolean   startsWith(String prefix, int toffset)
-  CharSequence   subSequence(int beginIndex, int endIndex)
-  String   substring(int beginIndex)
-  String   substring(int beginIndex, int endIndex)
-  char[]   toCharArray()
-  String   toLowerCase()
-  String   toLowerCase(Locale locale)
-  String   toString()
-  String   toUpperCase()
-  String   toUpperCase(Locale locale)
-  String   trim()
-  static String   valueOf(boolean b)
-  static String   valueOf(char c)
-  static String   valueOf(char[] data)
-  static String   valueOf(char[] data, int offset, int count)
-  static String   valueOf(double d)
-  static String   valueOf(float f)
-  static String   valueOf(int i)
-  static String   valueOf(long l)
-  static String   valueOf(Object obj)
+  int lastIndexOf(int ch) { return lastIndexOf(ch,data.length-1); }
+
+  int lastIndexOf( int ch, int i2 )
+  {
+    for (int i=i2; i>=0; --i)
+    {
+      if (data[i] == ch) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexOf( String st ) { return lastIndexOf(st,data.length-1); }
+
+  int lastIndexOf( String st, int i2 )
+  {
+    int ch1 = st.data[0];
+    for (int i=i2; i>=0; --i)
+    {
+      if (data[i] == ch1)
+      {
+        if (regionMatches(false, i, st, 0, st.data.length))
+        {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  boolean regionMatches( boolean ignoreCase, int this_offset, 
+      String other, int other_offset, int count )
+  {
+    if (this_offset < 0 || other_offset < 0) return false;
+    if (this_offset + count > data.length) return false;
+    if (other_offset + count > other.data.length) return false;
+
+    for (int i=0; i<count; ++i)
+    {
+      char ch1 = data[this_offset+i];
+      char ch2 = other.data[other_offset+i];
+      if (ignoreCase)
+      {
+        if (ch1 >= 'A' && ch1 <= 'Z') ch1 += ('a'-'A');
+        if (ch2 >= 'A' && ch2 <= 'Z') ch2 += ('a'-'A');
+      }
+      if (ch1 != ch2) return false;
+    }
+
+    return true;
+  }
+
+  boolean regionMatches( int this_offset, String other, int other_offset, int count )
+  {
+    return regionMatches( false, this_offset, other, other_offset, count );
+  }
+
+  String   replace( char old_char, char new_char )
+  {
+    StringBuilder buffer = new StringBuilder();
+
+    int count = data.length;
+    for (int i=0; i<count; ++i)
+    {
+      char ch = data[i];
+      if (ch == old_char) ch = new_char;
+      buffer.append(ch);
+    }
+    
+    return buffer.toString();
+  }
+
+  String replace( String target, String replacement )
+  {
+    // Note: Jog parameters changed from CharSequence to String.
+    StringBuilder buffer = new StringBuilder();
+
+    String remaining = this;
+    while (remaining.data.length > 0)
+    {
+      int i = remaining.indexOf(target);
+      if (i >= 0)
+      {
+        buffer.append( remaining.substring(0,i) );
+        buffer.append( replacement );
+        remaining = remaining.substring(i+target.data.length);
+      }
+      else
+      {
+        buffer.append( remaining );
+        break;
+      }
+    }
+    return buffer.toString();
+  }
+
+  String replaceAll( String target, String replacement )
+  {
+    // Note: target considered a string instead of a regex.
+    return replace(target,replacement);
+  }
+
+  String replaceFirst( String target, String replacement )
+  {
+    // Note: target considered a string instead of a regex.
+    int i = indexOf(target);
+    if (i >= 0)
+    {
+      return substring(0,i) + replacement + substring(i+target.data.length);
+    }
+    else
+    {
+      return this;
+    }
+  }
+
+  String[] split( String splitter )
+  {
+    ArrayList<String> strings = new ArrayList<String>();
+
+    String remaining = this;
+    while (remaining.data.length > 0)
+    {
+      int i = remaining.indexOf(splitter);
+      if (i >= 0)
+      {
+        strings.add( remaining.substring(0,i) );
+        remaining = remaining.substring( i + splitter.data.length );
+      }
+      else
+      {
+        strings.add( remaining );
+        break;
+      }
+    }
+
+    String[] results = new String[ strings.size() ];
+    for (int i=0; i<results.length; ++i)
+    {
+      results[i] = strings.get(i);
+    }
+
+    return results;
+  }
+
+  boolean startsWith( String prefix )
+  {
+    return indexOf(prefix) == 0;
+  }
+
+  boolean startsWith( String prefix, int offset )
+  {
+    return indexOf(prefix,offset) == offset;
+  }
+
+  String substring( int i1 )
+  {
+    return substring( i1, data.length );
+  }
+
+  String substring( int i1, int i2_exclusive )
+  {
+    StringBuilder buffer = new StringBuilder();
+
+    for (int i=i1; i<i2_exclusive; ++i)
+    {
+      buffer.append(data[i]);
+    }
+
+    return buffer.toString();
+  }
+
+  char[] toCharArray()
+  {
+    int count = data.length;
+    char[] result = new char[count];
+
+    for (int i=0; i<count; ++i)
+    {
+      result[i] = data[i];
+    }
+
+    return result;
+  }
+
+  String toLowerCase()
+  {
+    StringBuilder buffer = new StringBuilder();
+    int count = data.length;
+
+    for (int i=0; i<count; ++i)
+    {
+      char ch = data[i];
+      if (ch >= 'A' && ch <= 'Z') ch += ('a'-'A');
+      buffer.append(ch);
+    }
+
+    return buffer.toString();
+  }
+
+  String toUpperCase()
+  {
+    StringBuilder buffer = new StringBuilder();
+    int count = data.length;
+
+    for (int i=0; i<count; ++i)
+    {
+      char ch = data[i];
+      if (ch >= 'a' && ch <= 'z') ch += ('A'-'a');
+      buffer.append(ch);
+    }
+
+    return buffer.toString();
+  }
+
+  String trim()
+  {
+    String result = this;
+
+    while (result.data.length > 0 && result.data[0] == ' ')
+    {
+      result = result.substring(1);
+    }
+
+    while (result.data.length > 0 && result.data[result.data.length-1] == ' ')
+    {
+      result = result.substring(0,result.data.length-1);
+    }
+
+    return result;
+  }
+
+  /*
+  static String valueOf(boolean b)
+  {
+  }
+
+  static String valueOf(char c)
+  {
+  }
+
+  static String valueOf(char[] data)
+  {
+  }
+
+  static String valueOf(char[] data, int offset, int count)
+  {
+  }
+
+  static String valueOf(double d)
+  {
+  }
+
+  static String valueOf(float f)
+  {
+  }
+
+  static String valueOf(int i)
+  {
+  }
+
+  static String valueOf(long l)
+  {
+  }
+
+  static String valueOf(Object obj)
+  {
+  }
   */
+
 }
 
 class StringBuilder
