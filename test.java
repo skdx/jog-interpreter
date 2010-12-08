@@ -46,6 +46,30 @@ class Test
     println( transport.speed() );
     println( horse.speed() );
   }
+
+  native static public void printSound( float[] data );
+  native static public void playSound( float[] data );
+  native static public void printImage( byte[] data );
+
+  static public void printImage( byte[][][] data )
+  {
+    int w = data.length;
+    int h = data[0].length;
+    byte[] packed = new byte[w*h*3];
+
+    int pos = 0;
+    for (int j=0; j<h; ++j)
+    {
+      for (int i=0; i<w; ++i)
+      {
+        packed[pos++] = data[i][j][0];
+        packed[pos++] = data[i][j][1];
+        packed[pos++] = data[i][j][2];
+      }
+    }
+
+    printImage( packed );
+  }
 }
 
 public class Animal

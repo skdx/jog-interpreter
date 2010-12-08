@@ -505,9 +505,11 @@ class String
     return new String(new_data);
   }
 
-  public boolean equals( String other )
+  public boolean equals( Object other_object )
   {
-    if (this == other) return true;
+    if (this == other_object) return true;
+
+    String other = other_object.toString();
     if (other == null || this.data.length != other.data.length) return false;
 
     int count = data.length;
@@ -518,6 +520,162 @@ class String
 
     return true;
   }
+
+  public boolean equalsIgnoreCase( Object other_object )
+  {
+    if (this == other_object) return true;
+
+    String other = other_object.toString();
+    if (other == null || this.data.length != other.data.length) return false;
+
+    int count = data.length;
+    for (int i=0; i<count; ++i)
+    {
+      char ch1 = data[i];
+      char ch2 = other.data[i];
+      if (ch1 >= 'A' && ch1 <= 'Z') ch1 += ('a'-'A');
+      if (ch2 >= 'A' && ch2 <= 'Z') ch2 += ('a'-'A');
+      if (ch1 != ch2) return false;
+    }
+
+    return true;
+  }
+
+  char charAt(int index) { return data[index]; }
+
+  int  compareTo( String other )
+  {
+    if (this == other) return 0;
+
+    int count = data.length;
+    if (count > other.data.length) count = other.data.length;
+
+    for (int i=0; i<count; ++i)
+    {
+      char ch1 = data[i];
+      char ch2 = other.data[i];
+      if (ch1 != ch2)
+      {
+        if (ch1 > ch2) return 1;
+        else return -1;
+      }
+    }
+
+    if (data.length > other.data.length) return  1;
+    if (data.length < other.data.length) return -1;
+
+    return 0;
+  }
+
+  int compareToIgnoreCase(String other)
+  {
+    if (this == other) return 0;
+
+    int count = data.length;
+    if (count > other.data.length) count = other.data.length;
+
+    for (int i=0; i<count; ++i)
+    {
+      char ch1 = data[i];
+      char ch2 = other.data[i];
+      if (ch1 >= 'A' && ch1 <= 'Z') ch1 += ('a'-'A');
+      if (ch2 >= 'A' && ch2 <= 'Z') ch2 += ('a'-'A');
+      if (ch1 != ch2)
+      {
+        if (ch1 > ch2) return 1;
+        else return -1;
+      }
+    }
+
+    if (data.length > other.data.length) return  1;
+    if (data.length < other.data.length) return -1;
+
+    return 0;
+  }
+
+  /*
+  boolean endsWith( String suffix )
+  {
+    int i = indexOf( suffix );
+    if (i == -1) return false;
+
+    return (i == data.length - suffix.data.length);
+  }
+  */
+
+  int   hashCode() { return hash_code; }
+
+  int   indexOf( int ch ) { return indexOf( ch, 0 ); }
+
+  int   indexOf( int ch, int i1 )
+  {
+    int count = data.length;
+    for (int i=i1; i<count; ++i)
+    {
+      if (data[i] == ch) return i;
+    }
+    return -1;
+  }
+
+  /*
+  int   indexOf( String st ) { return indexOf( st, 0 ); }
+
+  int   indexOf( String st, int i1 )
+  {
+    int count = data.length - (st.data.length - 1);
+    int ch1 = st.data[0];
+    for (int i=i1; i<count; ++i)
+    {
+      if (data[i] == ch)
+      {
+        if (regionMatches( false, i, st, 0, st.data.length ))
+        {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  String intern() { return this; }  // dummy implementation
+
+  boolean isEmpty() { return data.length == 0; }
+
+  int   lastIndexOf(int ch)
+  int   lastIndexOf(int ch, int fromIndex)
+  int   lastIndexOf(String str)
+  int   lastIndexOf(String str, int fromIndex)
+  int   offsetByCodePoints(int index, int codePointOffset)
+  boolean   regionMatches(boolean ignoreCase, int toffset, String other, int ooffset, int len)
+  boolean   regionMatches(int toffset, String other, int ooffset, int len)
+  String   replace(char oldChar, char newChar)
+  String   replace(CharSequence target, CharSequence replacement)
+  String   replaceAll(String regex, String replacement)
+  String   replaceFirst(String regex, String replacement)
+  String[]   split(String regex)
+  String[]   split(String regex, int limit)
+  boolean   startsWith(String prefix)
+  boolean   startsWith(String prefix, int toffset)
+  CharSequence   subSequence(int beginIndex, int endIndex)
+  String   substring(int beginIndex)
+  String   substring(int beginIndex, int endIndex)
+  char[]   toCharArray()
+  String   toLowerCase()
+  String   toLowerCase(Locale locale)
+  String   toString()
+  String   toUpperCase()
+  String   toUpperCase(Locale locale)
+  String   trim()
+  static String   valueOf(boolean b)
+  static String   valueOf(char c)
+  static String   valueOf(char[] data)
+  static String   valueOf(char[] data, int offset, int count)
+  static String   valueOf(double d)
+  static String   valueOf(float f)
+  static String   valueOf(int i)
+  static String   valueOf(long l)
+  static String   valueOf(Object obj)
+  */
 }
 
 class StringBuilder
