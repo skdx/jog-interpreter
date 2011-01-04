@@ -175,6 +175,12 @@ class Double extends Number
     if (is_negative) whole_st = "-" + whole_st;
 
     String decimal_st = Long.toString(decimal);
+
+    // Kludge
+    if (decimal < 1000) decimal_st = "0" + decimal_st;
+    if (decimal < 100)  decimal_st = "0" + decimal_st;
+    if (decimal < 10)   decimal_st = "0" + decimal_st;
+
     while (decimal_st.length() < 4) decimal_st += "0";
 
     return whole_st + "." + decimal_st;
