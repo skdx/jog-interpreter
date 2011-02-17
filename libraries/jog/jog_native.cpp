@@ -80,6 +80,14 @@ static void Math__floor__double( JogVM* vm )
   vm->push( floor(n) );
 }
 
+static void Math__pow__double_double( JogVM* vm )
+{
+  double p = vm->pop_double();
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( pow(n,p) );
+}
+
 static void Math__sqrt__double( JogVM* vm )
 {
   double n = vm->pop_double();
@@ -162,6 +170,7 @@ void JogVM::add_native_handlers()
 
   add_native_handler( "Math::floor(double)", Math__floor__double );
 
+  add_native_handler( "Math::pow(double,double)", Math__pow__double_double );
   add_native_handler( "Math::sqrt(double)", Math__sqrt__double );
 
   add_native_handler( "PrintWriter::print(char)", PrintWriter__print__char );

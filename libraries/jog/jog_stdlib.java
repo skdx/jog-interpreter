@@ -100,6 +100,7 @@ class Math
   native static double atan( double slope );
   native static double atan2( double y, double x );
 
+  native static double pow( double n, double power );
   native static double sqrt( double n );
 
   native static double floor( double n );
