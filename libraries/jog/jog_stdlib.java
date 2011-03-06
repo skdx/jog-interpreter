@@ -88,9 +88,9 @@ class Math
   static double PI = acos(-1.0);
 
   native static double abs( double n );
-  static float abs( float n ) { return (float) abs(n); }
-  static long  abs( long n ) { return (long) abs(n); }
-  static int   abs( int n ) { return (int) abs(n); }
+  native static float abs( float n );
+  native static int abs( int n );
+  native static long abs( long n );
 
   native static double cos( double radians );
   native static double sin( double radians );
@@ -103,6 +103,7 @@ class Math
   native static double pow( double n, double power );
   native static double sqrt( double n );
 
+  native static double ceil( double n );
   native static double floor( double n );
   static double random() { return random_gen.nextDouble(); }
 }
@@ -252,7 +253,7 @@ class Integer extends Number
       n /= 10;
     }
     if (is_negative) buffer.append('-');
-    
+
     return buffer.reverse().toString();
   }
 
@@ -300,7 +301,7 @@ class Long extends Number
       n /= 10;
     }
     if (is_negative) buffer.append('-');
-    
+
     return buffer.reverse().toString();
   }
 
@@ -392,7 +393,7 @@ class Character
     "`", "a", "b", "c", "d", "e", "f", "g",
     "h", "i", "j", "k", "l", "m", "n", "o",
     "p", "q", "r", "s", "t", "u", "v", "w",
-    "x", "y", "z", "{", "|", "}", "~", "" 
+    "x", "y", "z", "{", "|", "}", "~", ""
   };
 
   // CLASS METHODS
@@ -456,10 +457,10 @@ class Object
   static public void println( int n ) { System.out.println(n); }
   static public void println( long n ) { System.out.println(n); }
 
-  static public void println( Object obj ) 
-  { 
+  static public void println( Object obj )
+  {
     if (obj == null) System.out.println("null");
-    else System.out.println(obj.toString()); 
+    else System.out.println(obj.toString());
   }
 
   static public void println( String st ) { System.out.println(st); }
@@ -674,7 +675,7 @@ class String
     return -1;
   }
 
-  boolean regionMatches( boolean ignoreCase, int this_offset, 
+  boolean regionMatches( boolean ignoreCase, int this_offset,
       String other, int other_offset, int count )
   {
     if (this_offset < 0 || other_offset < 0) return false;
@@ -712,7 +713,7 @@ class String
       if (ch == old_char) ch = new_char;
       buffer.append(ch);
     }
-    
+
     return buffer.toString();
   }
 
@@ -1042,22 +1043,22 @@ class Random
   }
 
   float nextFloat()
-  { 
+  {
     return next(24) / ((float)(1 << 24));
   }
 
   /*
   double  next_next_gaussian;
   boolean have_next_next_guassian;
-  public double nextGaussian() 
+  public double nextGaussian()
   {
     clear the have next flag in setSeed()
-    if (have_next_next_guassian) 
+    if (have_next_next_guassian)
     {
       have_next_next_guassian = false;
       return next_next_gaussian;
-    } 
-    else 
+    }
+    else
     {
       double v1, v2, s;
       do {
@@ -1075,7 +1076,7 @@ class Random
 
   int nextInt() { return next(32); }
 
-  public int nextInt( int limit ) 
+  public int nextInt( int limit )
   {
     assert( limit > 0, "nextInt() parameter is non-positive." );
 
