@@ -23,6 +23,30 @@ static void Math__abs__double( JogVM* vm )
   else        vm->push( -n );
 }
 
+static void Math__abs__float( JogVM* vm )
+{
+  float n = (float) vm->pop_double();
+  vm->pop_frame();
+  if (n >= 0) vm->push( n );
+  else        vm->push( -n );
+}
+
+static void Math__abs__int( JogVM* vm )
+{
+  int n = vm->pop_int();
+  vm->pop_frame();
+  if (n >= 0) vm->push( n );
+  else        vm->push( -n );
+}
+
+static void Math__abs__long( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  if (n >= 0) vm->push( n );
+  else        vm->push( -n );
+}
+
 static void Math__cos__double( JogVM* vm )
 {
   double rads = vm->pop_double();
@@ -71,6 +95,13 @@ static void Math__atan2__double_double( JogVM* vm )
   double y = vm->pop_double();
   vm->pop_frame();
   vm->push( atan2(y,x) );
+}
+
+static void Math__ceil__double( JogVM* vm )
+{
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( ceil(n) );
 }
 
 static void Math__floor__double( JogVM* vm )
@@ -160,6 +191,10 @@ static void System__currentTimeMillis( JogVM* vm )
 void JogVM::add_native_handlers()
 {
   add_native_handler( "Math::abs(double)", Math__abs__double );
+  add_native_handler( "Math::abs(float)", Math__abs__float );
+  add_native_handler( "Math::abs(int)", Math__abs__int );
+  add_native_handler( "Math::abs(long)", Math__abs__long );
+
   add_native_handler( "Math::cos(double)", Math__cos__double );
   add_native_handler( "Math::sin(double)", Math__sin__double );
   add_native_handler( "Math::tan(double)", Math__tan__double );
@@ -168,6 +203,7 @@ void JogVM::add_native_handlers()
   add_native_handler( "Math::atan(double)", Math__atan__double );
   add_native_handler( "Math::atan2(double,double)", Math__atan2__double_double );
 
+  add_native_handler( "Math::ceil(double)", Math__ceil__double );
   add_native_handler( "Math::floor(double)", Math__floor__double );
 
   add_native_handler( "Math::pow(double,double)", Math__pow__double_double );
