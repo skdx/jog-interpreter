@@ -126,6 +126,69 @@ static void Math__sqrt__double( JogVM* vm )
   vm->push( sqrt(n) );
 }
 
+static void Math__min__double_double( JogVM* vm )
+{
+  double m = vm->pop_double();
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( min(n,m) );
+}
+
+static void Math__min__float_float( JogVM* vm )
+{
+  float m = (float) vm->pop_double();
+  float n = (float) vm->pop_double();
+  vm->pop_frame();
+  vm->push( min(n,m) );
+}
+
+static void Math__min__int_int( JogVM* vm )
+{
+  int m = vm->pop_int();
+  int n = vm->pop_int();
+  vm->pop_frame();
+  vm->push( min(n,m) );
+}
+
+static void Math__min__long_long( JogVM* vm )
+{
+  double m = vm->pop_double();
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( min(n,m) );
+}
+
+static void Math__max__double_double( JogVM* vm )
+{
+  double m = vm->pop_double();
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( max(n,m) );
+}
+
+static void Math__max__float_float( JogVM* vm )
+{
+  float m = (float) vm->pop_double();
+  float n = (float) vm->pop_double();
+  vm->pop_frame();
+  vm->push( max(n,m) );
+}
+
+static void Math__max__int_int( JogVM* vm )
+{
+  int m = vm->pop_int();
+  int n = vm->pop_int();
+  vm->pop_frame();
+  vm->push( max(n,m) );
+}
+
+static void Math__max__long_long( JogVM* vm )
+{
+  double m = vm->pop_double();
+  double n = vm->pop_double();
+  vm->pop_frame();
+  vm->push( max(n,m) );
+}
 
 //=============================================================================
 //  PrintWriter
@@ -208,6 +271,16 @@ void JogVM::add_native_handlers()
 
   add_native_handler( "Math::pow(double,double)", Math__pow__double_double );
   add_native_handler( "Math::sqrt(double)", Math__sqrt__double );
+
+  add_native_handler( "Math::min(double,double)", Math__min__double_double );
+  add_native_handler( "Math::min(float,float)", Math__min__float_float );
+  add_native_handler( "Math::min(int,int)", Math__min__int_int );
+  add_native_handler( "Math::min(long,long)", Math__min__long_long );
+
+  add_native_handler( "Math::max(double,double)", Math__max__double_double );
+  add_native_handler( "Math::max(float,float)", Math__max__float_float );
+  add_native_handler( "Math::max(int,int)", Math__max__int_int );
+  add_native_handler( "Math::max(long,long)", Math__max__long_long );
 
   add_native_handler( "PrintWriter::print(char)", PrintWriter__print__char );
   add_native_handler( "PrintWriter::print(String)", PrintWriter__print__String );

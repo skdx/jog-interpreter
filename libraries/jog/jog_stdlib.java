@@ -103,6 +103,16 @@ class Math
   native static double pow( double n, double power );
   native static double sqrt( double n );
 
+  native static double min( double n, double m );
+  native static float min( float n, float m );
+  native static int min( int n, int m );
+  native static long min( long n, long m );
+
+  native static double max( double n, double m );
+  native static float max( float n, float m );
+  native static int max( int n, int m );
+  native static long max( long n, long m );
+
   native static double ceil( double n );
   native static double floor( double n );
   static double random() { return random_gen.nextDouble(); }
