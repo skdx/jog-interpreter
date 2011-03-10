@@ -48,6 +48,7 @@ JogTypeInfo* JogTypeManager::find_common_type( JogToken* t,
     {
       if (type1 == type_boolean || type2 == type_boolean)
       {
+        if (type1 == type_boolean && type2 == type_boolean) return type_boolean;
         throw t->error( "Cannot mix boolean and non-boolean types in an operation." );
       }
     }
