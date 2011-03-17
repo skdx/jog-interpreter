@@ -1024,13 +1024,14 @@ Ref<JogCmd> JogCmdCast::resolve()
     }
   }
 
-
-  printf("\n");
-  from_type->print();
-  printf("->");
-  to_type->print();
-  printf("\n");
-  throw error( "TODO: finish JogCmdCast::resolve()" );
+  if (to_type == jog_type_manager.type_object || from_type->instance_of(to_type))
+  {
+    return new JogCmdWideningCast( t, operand, to_type );
+  }
+  else
+  {
+    return new JogCmdNarrowingCast( t, operand, to_type );
+  }
 }
 
 Ref<JogCmd> JogCmdAssign::resolve()

@@ -1035,19 +1035,18 @@ Ref<JogCmd> JogParser::parse_prefix_unary()
     scanner->read();
     if (scanner->next_is(TOKEN_ID))
     {
-      if (scanner->next_is("boolean")
-        || scanner->next_is("double")
-        || scanner->next_is("float")
-        || scanner->next_is("long")
-        || scanner->next_is("int")
-        || scanner->next_is("short")
-        || scanner->next_is("char")
-        || scanner->next_is("byte"))
+      // Casts are ambiguous syntax - assume this is indeed a cast and just try it.
+      try
       {
-        scanner->clear_mark();
         JogTypeInfo* to_type = parse_data_type();
         scanner->must_consume(TOKEN_RPAREN,"Closing ')' expected.");
-        return new JogCmdCast( t, parse_prefix_unary(), to_type );
+        Ref<JogCmd> result = new JogCmdCast( t, parse_prefix_unary(), to_type );
+        scanner->clear_mark();
+        return result;
+      }
+      catch (Ref<JogError> error)
+      {
+        // Didn't work, not a cast - just proceed.
       }
     }
 

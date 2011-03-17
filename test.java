@@ -1,9 +1,22 @@
-class Test
-{
-	Test()
-  {
-    println( Math.pow(2,8) );
-    if (true == true) return;
-  }
-}
 
+class Test { 
+   Test () 
+   {
+     Object obj = "Works";
+     String st = (String) obj;
+     println( st );
+   } 
+ 
+  public class A { 
+    public A () {;} 
+  } 
+ 
+  public class B { 
+    public B () {;} 
+    public A something () { 
+      if (true) {return null;} 
+      return (A) new A (); 
+    } 
+  } 
+ 
+} 
