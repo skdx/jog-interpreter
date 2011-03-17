@@ -2299,7 +2299,6 @@ struct JogCmdUnary : JogCmd
   void on_push( JogVM* vm );
 };
 
-
 struct JogCmdCast : JogCmdUnary
 {
   int node_type() { return __LINE__; }
